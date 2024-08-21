@@ -165,6 +165,7 @@ pub enum TextFileType {
 #[serde(tag = "type", content = "data")]
 pub enum EditorType {
 	Nil,
+	QuickStart,
 	ResourceOverview,
 	Text { file_type: TextFileType },
 	QNEntity,
@@ -371,6 +372,10 @@ strike! {
 		}),
 
 		Editor(pub enum EditorEvent {
+			QuickStart(pub enum QuickStartEvent {
+				Create
+			}),
+			
 			Text(pub enum TextEditorEvent {
 				Initialise {
 					id: Uuid
@@ -814,6 +819,10 @@ strike! {
 		}),
 
 		Editor(pub enum EditorRequest {
+			QuickStart(pub enum QuickStartRequest {
+
+			})
+			
 			Text(pub enum TextEditorRequest {
 				ReplaceContent {
 					id: Uuid,
