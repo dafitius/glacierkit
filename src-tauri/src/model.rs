@@ -401,6 +401,9 @@ strike! {
 		Editor(pub enum EditorEvent {
 			QuickStart(pub enum QuickStartEvent {
 				Create,
+				RefreshRecentList{
+					id: Uuid,
+				},
 				CreateLocalProject {
 					name: String,
 					path: PathBuf,
@@ -411,7 +414,10 @@ strike! {
 				},
 				RemoveRecentProject {
 					path: PathBuf,
-				}
+				},
+				OpenProjectInExplorer {
+					path: PathBuf,
+				},
 			}),
 			
 			Text(pub enum TextEditorEvent {
@@ -862,6 +868,10 @@ strike! {
 					id: Uuid,
 					recent_projects: Vec<ProjectInfo>,
 				},
+				RefreshRecentList{
+					id: Uuid,
+					recent_projects: Vec<ProjectInfo>,
+				}
 			})
 			
 			Text(pub enum TextEditorRequest {

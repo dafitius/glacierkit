@@ -354,7 +354,16 @@ fn event(app: AppHandle, event: Event) {
 										recent_projects: app_settings.load().recent_projects.clone()
 									}))
 								)?;
-							}
+							},
+							QuickStartEvent::RefreshRecentList {id} => {
+								send_request(
+									&app,
+									Request::Editor(EditorRequest::QuickStart(QuickStartRequest::RefreshRecentList {
+										id,
+										recent_projects: app_settings.load().recent_projects.clone()
+									}))
+								)?;
+							},
 							QuickStartEvent::CreateLocalProject { name, path, version } => {
 								fn replace_prefix(
 									p: impl AsRef<Path>,
@@ -449,6 +458,9 @@ fn event(app: AppHandle, event: Event) {
 									to_vec(&settings)?
 								)?;
 								app_settings.store(settings.into());
+							},
+							QuickStartEvent::OpenProjectInExplorer { path } => {
+								opener::reveal(path).context("Can't open in explorer")?;
 							}
 						},
 
