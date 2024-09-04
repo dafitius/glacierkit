@@ -193,6 +193,7 @@ pub enum TextFileType {
 pub enum EditorType {
 	Nil,
 	QuickStart,
+	Project,
 	ResourceOverview,
 	Text { file_type: TextFileType },
 	QNEntity,
@@ -420,6 +421,10 @@ strike! {
 				},
 			}),
 			
+			Project(pub enum ProjectEvent {
+				Initialise 
+			}),
+
 			Text(pub enum TextEditorEvent {
 				Initialise {
 					id: Uuid
@@ -872,8 +877,15 @@ strike! {
 					id: Uuid,
 					recent_projects: Vec<ProjectInfo>,
 				}
-			})
+			}),
 			
+			Project(pub enum ProjectRequest {
+				Initialise {
+					id: Uuid,
+					project_path: PathBuf,
+				}
+			}),
+
 			Text(pub enum TextEditorRequest {
 				ReplaceContent {
 					id: Uuid,

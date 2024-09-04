@@ -54,11 +54,7 @@ use indexmap::IndexMap;
 use json_patch::Patch;
 use log::{info, trace, LevelFilter};
 use model::{
-	AppSettings, AppState, ContentSearchResultsEvent, ContentSearchResultsRequest, EditorConnectionEvent, EditorData,
-	EditorEvent, EditorRequest, EditorState, EditorType, EntityEditorRequest, EntityMetadataRequest,
-	EntityMonacoRequest, EntityTreeRequest, Event, FileBrowserRequest, GlobalEvent, GlobalRequest, JsonPatchType,
-	Project, ProjectInfo, ProjectSettings, QuickStartEvent, QuickStartRequest, Request, SettingsRequest,
-	TextEditorEvent, TextEditorRequest, TextFileType, ToolRequest
+	AppSettings, AppState, ContentSearchResultsEvent, ContentSearchResultsRequest, EditorConnectionEvent, EditorData, EditorEvent, EditorRequest, EditorState, EditorType, EntityEditorRequest, EntityMetadataRequest, EntityMonacoRequest, EntityTreeRequest, Event, FileBrowserRequest, ProjectRequest, GlobalEvent, GlobalRequest, JsonPatchType, Project, ProjectEvent, ProjectInfo, ProjectSettings, QuickStartEvent, QuickStartRequest, Request, SettingsRequest, TextEditorEvent, TextEditorRequest, TextFileType, ToolRequest
 };
 use notify::Watcher;
 use quickentity_rs::{generate_patch, qn_structs::Property};
@@ -400,7 +396,7 @@ fn event(app: AppHandle, event: Event) {
 												use std::os::unix::fs::PermissionsExt;
 
 												if let Some(mode) = file.unix_mode() {
-													fs::set_permissions(&mod_folder, fs::Permissions::from_mode(mode))
+													fs::set_permissions(&project_dir, fs::Permissions::from_mode(mode))
 														.unwrap();
 												}
 											}
@@ -461,6 +457,37 @@ fn event(app: AppHandle, event: Event) {
 							},
 							QuickStartEvent::OpenProjectInExplorer { path } => {
 								opener::reveal(path).context("Can't open in explorer")?;
+							}
+						},
+						
+						EditorEvent::Project(event) => match event {
+							ProjectEvent::Initialise => {
+								let id = Uuid::new_v4();
+
+								app_state.editor_states.insert(
+									id.to_owned(),
+									EditorState {
+										file: None,
+										data: EditorData::Nil
+									}
+								);
+
+								send_request(
+									&app,
+									Request::Global(GlobalRequest::CreateTab {
+										id,
+										name: "Project settings".to_string(),
+										editor_type: EditorType::Project
+									})
+								)?;
+
+								send_request(
+									&app,
+									Request::Editor(EditorRequest::Project(ProjectRequest::Initialise {
+										id,
+										project_path: "C:/path/file.txt".into()
+									}))
+								)?;
 							}
 						},
 

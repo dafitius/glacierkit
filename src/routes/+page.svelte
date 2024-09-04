@@ -33,6 +33,7 @@
 	import { open, confirm } from "@tauri-apps/api/dialog"
 	import { help } from "$lib/helpray"
 	import { v4 } from "uuid"
+	import ProjectEditor from "$lib/editors/project/ProjectEditor.svelte"
 
 	const hints = [
 		"You can switch between tabs with Ctrl-PageUp and Ctrl-PageDown (or Ctrl-Tab and Ctrl-Shift-Tab).",
@@ -106,6 +107,9 @@
 			case "QuickStart":
 				return QuickStartEditor
 
+			case "Project":
+				return ProjectEditor
+
 			case "Text":
 				return TextEditor
 
@@ -149,6 +153,15 @@
 				type: "quickStart",
 				data: {
 					type: "create"
+				}
+			}
+		});
+		await event({
+			type: "editor",
+			data: {
+				type: "project",
+				data: {
+					type: "initialise",
 				}
 			}
 		})
