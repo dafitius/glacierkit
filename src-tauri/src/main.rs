@@ -370,6 +370,10 @@ fn event(app: AppHandle, event: Event) {
 							}
 						},
 
+						EditorEvent::ModelViewer(event) => {
+							event_handling::model_viewer::handle(&app, event).await?;
+						},
+
 						EditorEvent::Entity(event) => {
 							event_handling::entity::handle(&app, event).await?;
 						}
@@ -815,7 +819,10 @@ fn event(app: AppHandle, event: Event) {
 									Err(anyhow!("Editor is a resource overview"))?;
 									panic!();
 								}
-
+								EditorData::ModelViewer { .. } => {
+									Err(anyhow!("This is the ModelViewer, not ModelEditor. Use something like Blender to edit"))?;
+									panic!();
+								},
 								EditorData::ContentSearchResults { .. } => {
 									Err(anyhow!("Editor is a content search results page"))?;
 									panic!();
@@ -1208,7 +1215,10 @@ fn event(app: AppHandle, event: Event) {
 												Err(anyhow!("Editor is a resource overview"))?;
 												panic!();
 											}
-
+											EditorData::ModelViewer { .. } => {
+												Err(anyhow!("This is the ModelViewer, not ModelEditor. Use something like Blender to edit"))?;
+												panic!();
+											},
 											EditorData::ContentSearchResults { .. } => {
 												Err(anyhow!("Editor is a content search results page"))?;
 												panic!();
@@ -1253,7 +1263,10 @@ fn event(app: AppHandle, event: Event) {
 												Err(anyhow!("Editor is a resource overview"))?;
 												panic!();
 											}
-
+											EditorData::ModelViewer { .. } => {
+												Err(anyhow!("This is the ModelViewer, not ModelEditor. Use something like Blender to edit"))?;
+												panic!();
+											},
 											EditorData::ContentSearchResults { .. } => {
 												Err(anyhow!("Editor is a content search results page"))?;
 												panic!();

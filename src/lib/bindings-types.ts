@@ -63,11 +63,11 @@ export type Dynamics = { announcements: Announcement[] }
 
 export type EditorConnectionEvent = { type: "entitySelected"; data: [string, string] } | { type: "entityTransformUpdated"; data: [string, string, QNTransform] } | { type: "entityPropertyChanged"; data: [string, string, string, string, JsonValue] }
 
-export type EditorEvent = { type: "text"; data: TextEditorEvent } | { type: "entity"; data: EntityEditorEvent } | { type: "resourceOverview"; data: ResourceOverviewEvent } | { type: "repositoryPatch"; data: RepositoryPatchEditorEvent } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorEvent } | { type: "contentSearchResults"; data: ContentSearchResultsEvent }
+export type EditorEvent = { type: "text"; data: TextEditorEvent } | { type: "modelViewer"; data: ModelViewerEvent } | { type: "entity"; data: EntityEditorEvent } | { type: "resourceOverview"; data: ResourceOverviewEvent } | { type: "repositoryPatch"; data: RepositoryPatchEditorEvent } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorEvent } | { type: "contentSearchResults"; data: ContentSearchResultsEvent }
 
-export type EditorRequest = { type: "text"; data: TextEditorRequest } | { type: "entity"; data: EntityEditorRequest } | { type: "resourceOverview"; data: ResourceOverviewRequest } | { type: "repositoryPatch"; data: RepositoryPatchEditorRequest } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorRequest } | { type: "contentSearchResults"; data: ContentSearchResultsRequest }
+export type EditorRequest = { type: "text"; data: TextEditorRequest } | { type: "modelViewer"; data: ModelViewerRequest } | { type: "entity"; data: EntityEditorRequest } | { type: "resourceOverview"; data: ResourceOverviewRequest } | { type: "repositoryPatch"; data: RepositoryPatchEditorRequest } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorRequest } | { type: "contentSearchResults"; data: ContentSearchResultsRequest }
 
-export type EditorType = { type: "Nil" } | { type: "ResourceOverview" } | { type: "Text"; data: { file_type: TextFileType } } | { type: "QNEntity" } | { type: "QNPatch" } | { type: "RepositoryPatch"; data: { patch_type: JsonPatchType } } | { type: "UnlockablesPatch"; data: { patch_type: JsonPatchType } } | { type: "ContentSearchResults" }
+export type EditorType = { type: "Nil" } | { type: "ResourceOverview" } | { type: "Text"; data: { file_type: TextFileType } } | { type: "RenderPrimitive" } | { type: "QNEntity" } | { type: "QNPatch" } | { type: "RepositoryPatch"; data: { patch_type: JsonPatchType } } | { type: "UnlockablesPatch"; data: { patch_type: JsonPatchType } } | { type: "ContentSearchResults" }
 
 export type EditorValidity = { type: "Valid" } | { type: "Invalid"; data: string }
 
@@ -249,6 +249,10 @@ export type JsonPatchType = "MergePatch" | "JsonPatch"
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
+export type ModelViewerEvent = { type: "initialise"; data: { id: string } } | { type: "updateLod"; data: { id: string; lod: number } }
+
+export type ModelViewerRequest = { type: "replaceGeometry"; data: { id: string; primitive: PrimitiveInstance } }
+
 export type OverriddenProperty = { 
 /**
  * The type of the property.
@@ -339,6 +343,8 @@ toPin: string;
  * The constant value of the input to the toEntity.
  */
 value?: SimpleProperty | null }
+
+export type PrimitiveInstance = { primitives: RuntimeRenderPrimitive[]; lod_mask: number }
 
 export type ProjectSettings = { customPaths: string[] }
 
@@ -469,6 +475,8 @@ export type ReverseReferenceData = { type: "parent" } | { type: "property"; data
 export type Rotation = { yaw: number; pitch: number; roll: number }
 
 export type RpkgResourceReference = { hash: string; flag: string }
+
+export type RuntimeRenderPrimitive = { bb_min: [number, number, number]; bb_max: [number, number, number]; wirecolor: [number, number, number, number]; lod_mask: number; clothId: number; materialId: number; index_buffer: number[]; position_buffer: ([number, number, number])[]; normal_buffer: ([number, number, number])[]; uv_buffer: (([number, number, number])[])[] }
 
 export type SearchFilter = "All" | "Templates" | "Classes" | "Models" | "Textures" | "Sound"
 

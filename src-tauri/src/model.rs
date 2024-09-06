@@ -11,6 +11,7 @@ use hitman_commons::{
 };
 use notify::RecommendedWatcher;
 use notify_debouncer_full::FileIdMap;
+use prim_rs::render_primitive::RenderPrimitive;
 use quickentity_rs::qn_structs::{Entity, Ref, SubEntity, SubType};
 use rpkg_rs::resource::partition_manager::PartitionManager;
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,7 @@ use uuid::Uuid;
 use crate::{
 	editor_connection::{EditorConnection, QNTransform},
 	entity::{CopiedEntityData, ReverseReference},
+	event_handling::model_viewer::PrimitiveInstance,
 	game_detection::GameInstall,
 	intellisense::Intellisense,
 	ores_repo::{RepositoryItem, RepositoryItemInformation, UnlockableInformation, UnlockableItem}
@@ -83,6 +85,10 @@ pub enum EditorData {
 	Text {
 		content: String,
 		file_type: TextFileType
+	},
+	ModelViewer {
+		prim_hash: RuntimeID,
+		primitive: RenderPrimitive,
 	},
 	QNEntity {
 		settings: EphemeralQNSettings,
@@ -167,6 +173,7 @@ pub enum EditorType {
 	Nil,
 	ResourceOverview,
 	Text { file_type: TextFileType },
+	RenderPrimitive,
 	QNEntity,
 	QNPatch,
 	RepositoryPatch { patch_type: JsonPatchType },
@@ -379,6 +386,17 @@ strike! {
 				UpdateContent {
 					id: Uuid,
 					content: String
+				}
+			}),
+
+			ModelViewer(pub enum ModelViewerEvent {
+				Initialise {
+					id: Uuid
+				},
+
+				UpdateLod {
+					id: Uuid,
+					lod: u8,
 				}
 			}),
 
@@ -824,6 +842,13 @@ strike! {
 					id: Uuid,
 					file_type: TextFileType
 				},
+			}),
+
+			ModelViewer(pub enum ModelViewerRequest{
+				ReplaceGeometry {
+					id: Uuid,
+					primitive: PrimitiveInstance
+				}
 			}),
 
 			Entity(pub enum EntityEditorRequest {
