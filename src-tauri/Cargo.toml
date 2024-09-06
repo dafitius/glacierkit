@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "1.7.1"
+version = "1.8.0"
 description = "An integrated modding tool for the HITMAN World of Assassination trilogy."
 authors = ["you"]
 license = ""
@@ -72,7 +72,7 @@ features = ["serde", "specta", "rpkg-rs", "tex-rs", "tonytools", "resourcelib", 
 
 [dependencies.hitman-formats]
 git = "https://github.com/atampy25/hitman-formats"
-features = ["material", "ores", "wwev"]
+features = ["material", "ores", "wwev", "serde"]
 
 [dependencies.serde_json]
 version = "1.0.110"
