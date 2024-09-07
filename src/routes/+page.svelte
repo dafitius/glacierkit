@@ -16,6 +16,7 @@
 	import Save from "carbon-icons-svelte/lib/Save.svelte"
 	import NilEditor from "$lib/editors/nil/NilEditor.svelte"
 	import TextEditor from "$lib/editors/text/TextEditor.svelte"
+	import ModelViewer from "$lib/editors/modelviewer/ModelViewer.svelte"
 	import EntityEditor from "$lib/editors/entity/EntityEditor.svelte"
 	import TextSelection from "carbon-icons-svelte/lib/TextSelection.svelte"
 	import TextTransformer from "$lib/tools/TextTransformer.svelte"
@@ -103,7 +104,8 @@
 
 			case "Text":
 				return TextEditor
-
+			case "ModelViewer":
+				return ModelViewer
 			case "QNEntity":
 			case "QNPatch":
 				return EntityEditor

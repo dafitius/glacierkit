@@ -88,7 +88,7 @@ pub enum EditorData {
 	},
 	ModelViewer {
 		prim_hash: RuntimeID,
-		primitive: RenderPrimitive,
+		primitive: Option<RenderPrimitive>,
 	},
 	QNEntity {
 		settings: EphemeralQNSettings,
@@ -173,7 +173,7 @@ pub enum EditorType {
 	Nil,
 	ResourceOverview,
 	Text { file_type: TextFileType },
-	RenderPrimitive,
+	ModelViewer,
 	QNEntity,
 	QNPatch,
 	RepositoryPatch { patch_type: JsonPatchType },
@@ -630,6 +630,11 @@ strike! {
 
 				OpenInEditor {
 					id: Uuid
+				},
+
+				OpenInViewer {
+					id: Uuid,
+					hash: RuntimeID,
 				},
 
 				ExtractAsQN {

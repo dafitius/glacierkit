@@ -4495,7 +4495,7 @@ checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 [[package]]
 name = "prim-rs"
 version = "0.1.1"
-source = "git+https://github.com/dafitius/GlacierFormats-rs#239714bc0603ed2cc94f382ec2534c34cf4e9949"
+source = "git+https://github.com/dafitius/GlacierFormats-rs#f657c6482112e2be959750314b76bbf97e3ae9d1"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -6236,7 +6236,7 @@ dependencies = [
 [[package]]
 name = "tex-rs"
 version = "0.1.1"
-source = "git+https://github.com/dafitius/GlacierFormats-rs#239714bc0603ed2cc94f382ec2534c34cf4e9949"
+source = "git+https://github.com/dafitius/GlacierFormats-rs#f657c6482112e2be959750314b76bbf97e3ae9d1"
 dependencies = [
  "binrw",
  "bitfield-struct",

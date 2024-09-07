@@ -895,6 +895,27 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 			}
 		}
 
+		ResourceOverviewEvent::OpenInViewer { id, hash } => {
+			let id = Uuid::new_v4();
+
+			app_state.editor_states.insert(
+				id.to_owned(),
+				EditorState {
+					file: None,
+					data: EditorData::ModelViewer {prim_hash: hash, primitive: None }
+				}
+			);
+
+			send_request(
+				&app,
+				Request::Global(GlobalRequest::CreateTab {
+					id,
+					name: format!("Model viewer ({hash})"),
+					editor_type: EditorType::ModelViewer
+				})
+			)?;
+		}
+
 		ResourceOverviewEvent::ExtractAsFile { id } => {
 			let editor_state = app_state.editor_states.get(&id).context("No such editor")?;
 

@@ -679,6 +679,26 @@
 										<Button
 											icon={DocumentExport}
 											on:click={async () => {
+												trackEvent("Open model viewer")
+
+												await event({
+													type: "editor",
+													data: {
+														type: "resourceOverview",
+														data: {
+															type: "openInViewer",
+															data: {
+																id,
+																hash
+															}
+														}
+													}
+												})
+											}}>Open in viewer</Button
+										>
+										<Button
+											icon={DocumentExport}
+											on:click={async () => {
 												trackEvent("Extract mesh file as original")
 
 												await event({
