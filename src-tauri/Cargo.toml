@@ -62,6 +62,10 @@ os_info = "3.8.2"
 derivative = "2.2.0"
 home = "0.5.9"
 
+
+[dependencies.resourcelib-ffi]
+path = "/home/dafitius/Documents/GitHub/resourcelib-bindings/resourcelib-ffi/"
+
 [dependencies.snmalloc-rs]
 version = "0.3.6"
 features = ["lto"]
