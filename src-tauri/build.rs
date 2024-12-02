@@ -33,7 +33,9 @@ fn main() {
 	let files = ["32px.png", "throbber.gif"];
 
 	for file in files {
-		std::fs::copy(static_folder.join(file), out_path.join(file)).expect("Failed to copy asset to output directory");
+		if out_path.exists(){
+			std::fs::copy(static_folder.join(file), out_path.join(file)).expect("Failed to copy asset to output directory");
+		}
 	}
 
 	tauri_build::build();

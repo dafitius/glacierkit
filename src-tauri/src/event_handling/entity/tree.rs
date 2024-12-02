@@ -41,7 +41,8 @@ use crate::{
 	rpkg::{extract_entity, extract_latest_metadata, extract_latest_resource},
 	send_notification, send_request, start_task, Notification, NotificationKind
 };
-
+use crate::model::EntityEditorRequest::NodeEditor;
+use crate::model::NodeEditorRequest;
 use super::monaco::SAFE_TO_SYNC;
 
 #[try_fn]
@@ -414,8 +415,18 @@ pub async fn select(app: &AppHandle, editor_id: Uuid, id: String) -> Result<()> 
 		app,
 		Request::Editor(EditorRequest::Entity(EntityEditorRequest::Monaco(
 			EntityMonacoRequest::UpdateValidity {
-				editor_id,
+				editor_id: editor_id.to_owned(),
 				validity: EditorValidity::Valid
+			}
+		)))
+	)?;
+
+	send_request(
+		app,
+		Request::Editor(EditorRequest::Entity(EntityEditorRequest::NodeEditor(
+			NodeEditorRequest::ChangeEntity {
+				editor_id: editor_id,
+				entity_id: id.to_owned(),
 			}
 		)))
 	)?;
@@ -468,6 +479,8 @@ pub async fn select(app: &AppHandle, editor_id: Uuid, id: String) -> Result<()> 
 			}
 		)))
 	)?;
+
+
 
 	finish_task(app, task)?;
 

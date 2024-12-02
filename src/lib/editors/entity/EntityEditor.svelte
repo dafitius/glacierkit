@@ -9,6 +9,7 @@
 	import Metadata from "./Metadata.svelte"
 	import Overrides from "./Overrides.svelte"
 	import { help } from "$lib/helpray"
+	import NodeGraph from "$lib/editors/entity/NodeGraph.svelte";
 
 	export let id: string
 
@@ -17,6 +18,7 @@
 	let metaPane: MetaPane
 	let metadata: Metadata
 	let overrides: Overrides
+	let nodeGraph: NodeGraph
 
 	export async function handleRequest(request: EntityEditorRequest) {
 		console.log(`Entity editor ${id} handling request`, request)
@@ -28,6 +30,10 @@
 
 			case "monaco":
 				monaco.handleRequest(request.data)
+				break
+
+			case "nodeEditor":
+				nodeGraph.handleRequest(request.data)
 				break
 
 			case "metaPane":
@@ -52,7 +58,7 @@
 		}
 	}
 
-	const modes = ["Metadata", "Overrides", "Tree"] as const
+	const modes = ["Metadata", "Overrides", "Tree", "NodeGraph"] as const
 	let activeMode: (typeof modes)[number] = "Tree"
 
 	let showReverseParentRefs = false
@@ -136,7 +142,7 @@
 	<div style="height: calc(100vh - 11rem)" class:hidden={activeMode !== "Overrides"}>
 		<Overrides editorID={id} bind:this={overrides} />
 	</div>
-	<div style="height: calc(100vh - 11rem)" class:hidden={activeMode !== "Tree"}>
+	<div style="height: calc(100vh - 11rem)" class:hidden={activeMode !== "Tree" && activeMode !== "NodeGraph"}>
 		<Splitpanes theme="">
 			<Pane size={25}>
 				<div class="w-full h-full pb-4 pr-2">
@@ -163,11 +169,18 @@
 					</Splitpanes>
 				</div>
 			</Pane>
+
 			<Pane class="overflow-visible">
-				<div class="h-full w-full flex flex-col gap-1" use:help={{ title: "Editor", description: "You can see and edit the selected entity's data here." }}>
+
+				<div class="h-full w-full flex flex-col gap-1" class:hidden={activeMode === "NodeGraph"} use:help={{ title: "Editor", description: "You can see and edit the selected entity's data here." }}>
 					<h3>Editor</h3>
 					<Monaco editorID={id} bind:this={monaco} />
 				</div>
+
+				<div class="h-full w-full flex flex-col gap-1" class:hidden={activeMode !== "NodeGraph"} use:help={{ title: "Editor", description: "You can see and edit the selected entity's pin connections here." }}>
+					<NodeGraph editorID={id} bind:this={nodeGraph}/>
+				</div>
+
 			</Pane>
 		</Splitpanes>
 	</div>

@@ -305,6 +305,33 @@ pub enum AnnouncementKind {
 	Error
 }
 
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum EntityNodeRefPinKind{
+	Ref,
+	RefArray,
+}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct EntityNodeRefPin {
+    pub name: String,
+	pub kind: EntityNodeRefPinKind,
+}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct EntityNodeData {
+	pub id: String,
+	pub name: String,
+	pub entity_type: String,
+	pub input_pins:  Vec<String>,
+	pub output_pins: Vec<String>,
+	pub exposed_entities: Vec<String>,
+	pub reference_pins: Vec<EntityNodeRefPin>,
+}
+
+
 strike! {
 	#[strikethrough[derive(Type, Serialize, Deserialize, Clone, Debug)]]
 	#[strikethrough[serde(rename_all = "camelCase", tag = "type", content = "data")]]
@@ -594,6 +621,13 @@ strike! {
 					UpdatePinConnectionOverrideDeletes {
 						editor_id: Uuid,
 						content: String
+					}
+				}),
+
+				NodeEditor(pub enum NodeEditorEvent {
+					UpdateContent {
+						editor_id: Uuid,
+						entity_id: String,
 					}
 				})
 			}),
@@ -1002,6 +1036,19 @@ strike! {
 					UpdateDecorations {
 						editor_id: Uuid,
 						decorations: Vec<(String, String)>,
+					}
+				}),
+
+				NodeEditor(pub enum NodeEditorRequest {
+					ChangeEntity {
+						editor_id: Uuid,
+						entity_id: String,
+                    }
+					ReplaceContent {
+						editor_id: Uuid,
+						entity_id: String,
+						entity_path: String,
+						nodes: Vec<EntityNodeData>,
 					}
 				})
 			}),

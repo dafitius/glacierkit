@@ -11,6 +11,7 @@ pub mod metadata;
 pub mod monaco;
 pub mod overrides;
 pub mod tree;
+pub mod node_editor;
 
 #[try_fn]
 #[context("Couldn't handle entity editor event")]
@@ -38,6 +39,10 @@ pub async fn handle(app: &AppHandle, event: EntityEditorEvent) -> Result<()> {
 
 		EntityEditorEvent::Overrides(event) => {
 			overrides::handle(app, event).await?;
+		}
+
+		EntityEditorEvent::NodeEditor(event) => {
+			node_editor::handle(app, event).await?;
 		}
 	}
 }

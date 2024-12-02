@@ -138,9 +138,9 @@ extraBlueprintDependencies: Dependency[];
  */
 comments: CommentEntity[] }
 
-export type EntityEditorEvent = { type: "general"; data: EntityGeneralEvent } | { type: "tree"; data: EntityTreeEvent } | { type: "monaco"; data: EntityMonacoEvent } | { type: "metaPane"; data: EntityMetaPaneEvent } | { type: "metadata"; data: EntityMetadataEvent } | { type: "overrides"; data: EntityOverridesEvent }
+export type EntityEditorEvent = { type: "general"; data: EntityGeneralEvent } | { type: "tree"; data: EntityTreeEvent } | { type: "monaco"; data: EntityMonacoEvent } | { type: "metaPane"; data: EntityMetaPaneEvent } | { type: "metadata"; data: EntityMetadataEvent } | { type: "overrides"; data: EntityOverridesEvent } | { type: "nodeEditor"; data: NodeEditorEvent }
 
-export type EntityEditorRequest = { type: "general"; data: EntityGeneralRequest } | { type: "tree"; data: EntityTreeRequest } | { type: "monaco"; data: EntityMonacoRequest } | { type: "metaPane"; data: EntityMetaPaneRequest } | { type: "metadata"; data: EntityMetadataRequest } | { type: "overrides"; data: EntityOverridesRequest }
+export type EntityEditorRequest = { type: "general"; data: EntityGeneralRequest } | { type: "tree"; data: EntityTreeRequest } | { type: "monaco"; data: EntityMonacoRequest } | { type: "metaPane"; data: EntityMetaPaneRequest } | { type: "metadata"; data: EntityMetadataRequest } | { type: "overrides"; data: EntityOverridesRequest } | { type: "nodeEditor"; data: NodeEditorRequest }
 
 export type EntityGeneralEvent = { type: "setShowReverseParentRefs"; data: { editor_id: string; show_reverse_parent_refs: boolean } } | { type: "setShowChangesFromOriginal"; data: { editor_id: string; show_changes_from_original: boolean } }
 
@@ -157,6 +157,12 @@ export type EntityMetadataRequest = { type: "initialise"; data: { editor_id: str
 export type EntityMonacoEvent = { type: "updateContent"; data: { editor_id: string; entity_id: string; content: string } } | { type: "followReference"; data: { editor_id: string; reference: string } } | { type: "openFactory"; data: { editor_id: string; factory: string } } | { type: "signalPin"; data: { editor_id: string; entity_id: string; pin: string; output: boolean } } | { type: "openResourceOverview"; data: { editor_id: string; resource: string } }
 
 export type EntityMonacoRequest = { type: "deselectIfSelected"; data: { editor_id: string; entity_ids: string[] } } | { type: "replaceContent"; data: { editor_id: string; entity_id: string; content: string } } | { type: "replaceContentIfSameEntityID"; data: { editor_id: string; entity_id: string; content: string } } | { type: "updateIntellisense"; data: { editor_id: string; entity_id: string; properties: ([string, string, JsonValue, boolean])[]; pins: [string[], string[]] } } | { type: "updateDecorationsAndMonacoInfo"; data: { editor_id: string; entity_id: string; decorations: ([string, string])[]; local_ref_entity_ids: string[] } } | { type: "updateValidity"; data: { editor_id: string; validity: EditorValidity } } | { type: "setEditorConnected"; data: { editor_id: string; connected: boolean } }
+
+export type EntityNodeData = { id: string; name: string; entityType: string; inputPins: string[]; outputPins: string[]; exposedEntities: string[]; referencePins: EntityNodeRefPin[] }
+
+export type EntityNodeRefPin = { name: string; kind: EntityNodeRefPinKind }
+
+export type EntityNodeRefPinKind = "ref" | "refArray"
 
 export type EntityOverridesEvent = { type: "initialise"; data: { editor_id: string } } | { type: "updatePropertyOverrides"; data: { editor_id: string; content: string } } | { type: "updateOverrideDeletes"; data: { editor_id: string; content: string } } | { type: "updatePinConnectionOverrides"; data: { editor_id: string; content: string } } | { type: "updatePinConnectionOverrideDeletes"; data: { editor_id: string; content: string } }
 
@@ -250,6 +256,10 @@ export type GlobalRequest = { type: "errorReport"; data: { error: string } } | {
 export type JsonPatchType = "MergePatch" | "JsonPatch"
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
+
+export type NodeEditorEvent = { type: "updateContent"; data: { editor_id: string; entity_id: string } }
+
+export type NodeEditorRequest = { type: "changeEntity"; data: { editor_id: string; entity_id: string } } | { type: "replaceContent"; data: { editor_id: string; entity_id: string; entity_path: string; nodes: EntityNodeData[] } }
 
 export type OverriddenProperty = { 
 /**

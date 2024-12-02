@@ -186,6 +186,7 @@ pub fn extract_entity<'a>(
 	cached_entities.get(&factory_id).expect("We just added it")
 }
 
+
 /// Get the history of the file, a changelog of events within the partitions.
 #[context("Couldn't extract changelog for resource {}", resource)]
 pub fn extract_resource_changelog(
