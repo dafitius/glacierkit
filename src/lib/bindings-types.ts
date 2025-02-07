@@ -231,9 +231,11 @@ externalScene: string | null;
  */
 exposedEntity?: string | null }
 
-export type GameBrowserEntry = { hash: string; path: string | null; hint: string | null; filetype: string; partition: [string, string] }
+export type GameBrowserEntry = { hash: string; path: string | null; hint: string | null; filetype: string; partitions: GameBrowserPartitionInfo[] }
 
 export type GameBrowserEvent = { type: "select"; data: string } | { type: "search"; data: [string, SearchFilter] } | { type: "openInEditor"; data: string }
+
+export type GameBrowserPartitionInfo = { id: string; name: string | null; removed: boolean }
 
 export type GameBrowserRequest = { type: "setEnabled"; data: boolean } | { type: "newTree"; data: { game_description: string; entries: GameBrowserEntry[] } }
 

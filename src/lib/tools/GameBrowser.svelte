@@ -8,6 +8,7 @@
 	import { clipboard } from "@tauri-apps/api"
 	import { trackEvent } from "@aptabase/tauri"
 	import { help } from "$lib/helpray"
+	import { getIconForResourceType } from "$lib/glacier-types"
 
 	export const elemID = "tree-" + Math.random().toString(36).replace(".", "")
 
@@ -257,19 +258,19 @@
 		const addedPartitions = new Set()
 
 		for (const entry of entries) {
-			if (separatePartitions && !addedPartitions.has(entry.partition[0])) {
+			if (separatePartitions && !addedPartitions.has(entry.partitions[0].id)) {
 				tree.settings!.core.data.push({
-					id: `partition-${entry.partition[0]}`,
+					id: `partition-${entry.partitions[0].id}`,
 					parent: "#",
 					icon: "fa-solid fa-box",
-					text: `${entry.partition[1]} (${entry.partition[0]})`,
+					text: `${entry.partitions[0].name ?? "<unnamed>"} (${entry.partitions[0].id})`,
 					folder: true,
 					path: null,
 					filetype: null,
-					chunk: entry.partition[0]
+					chunk: entry.partitions[0].id
 				})
 
-				addedPartitions.add(entry.partition[0])
+				addedPartitions.add(entry.partitions[0].id)
 			}
 
 			if (entry.path) {
@@ -281,15 +282,15 @@
 					.split("/")
 					.map((_, ind, arr) => arr.slice(0, ind + 1).join("/"))
 					.slice(0, -1)) {
-					if (!addedFolders.has(separatePartitions ? `${entry.partition[0]}-${pathSection}` : pathSection)) {
+					if (!addedFolders.has(separatePartitions ? `${entry.partitions[0].id}-${pathSection}` : pathSection)) {
 						tree.settings!.core.data.push({
-							id: separatePartitions ? `${entry.partition[0]}-${pathSection}` : pathSection,
+							id: separatePartitions ? `${entry.partitions[0].id}-${pathSection}` : pathSection,
 							parent: pathSection.split("/").slice(0, -1).join("/")
 								? separatePartitions
-									? `${entry.partition[0]}-${pathSection.split("/").slice(0, -1).join("/")}`
+									? `${entry.partitions[0].id}-${pathSection.split("/").slice(0, -1).join("/")}`
 									: pathSection.split("/").slice(0, -1).join("/")
 								: separatePartitions
-									? `partition-${entry.partition[0]}`
+									? `partition-${entry.partitions[0].id}`
 									: "#",
 							icon: "fa-regular fa-folder",
 							text: pathSection.split("/").at(-1),
@@ -298,59 +299,14 @@
 							filetype: null
 						})
 
-						addedFolders.add(separatePartitions ? `${entry.partition[0]}-${pathSection}` : pathSection)
+						addedFolders.add(separatePartitions ? `${entry.partitions[0].id}-${pathSection}` : pathSection)
 					}
 				}
 
 				tree.settings!.core.data.push({
 					id: entry.hash,
-					parent: separatePartitions ? `${entry.partition[0]}-${path.split("/").slice(0, -1).join("/")}` : path.split("/").slice(0, -1).join("/"),
-					icon: `${
-						{
-							TEMP: "fa-solid fa-cubes-stacked",
-							ASET: "fa-regular fa-rectangle-list",
-							CPPT: "fa-solid fa-diagram-project",
-							TEXT: "fa-regular fa-image",
-							TEXD: "fa-regular fa-image",
-							MRTN: "fa-solid fa-person-running",
-							FXAS: "fa-solid fa-person-running",
-							ATMD: "fa-solid fa-person-running",
-							UICT: "fa-regular fa-window-restore",
-							PRIM: "fa-solid fa-shapes",
-							WSGT: "fa-solid fa-volume-high",
-							WSWT: "fa-solid fa-volume-high",
-							WBNK: "fa-solid fa-volume-high",
-							WWEV: "fa-solid fa-volume-high",
-							WWFX: "fa-solid fa-explosion",
-							WWEM: "fa-solid fa-music",
-							WWES: "fa-solid fa-comments",
-							SDEF: "fa-solid fa-comments",
-							DLGE: "fa-solid fa-closed-captioning",
-							LOCR: "fa-solid fa-language",
-							RTLV: "fa-regular fa-closed-captioning",
-							REPO: "fa-solid fa-code",
-							JSON: "fa-solid fa-code",
-							ORES: "fa-solid fa-code",
-							GFXV: "fa-solid fa-film",
-							LINE: "fa-solid fa-comment",
-							CRMD: "fa-solid fa-people-group",
-							NAVP: "fa-solid fa-route",
-							AIRG: "fa-solid fa-route",
-							AIBX: "fa-regular fa-user",
-							AIBZ: "fa-regular fa-user",
-							YSHP: "fa-solid fa-baseball-bat-ball",
-							ALOC: "fa-solid fa-car-burst",
-							TBLU: "fa-regular fa-square",
-							CBLU: "fa-regular fa-square",
-							ASEB: "fa-regular fa-square",
-							UICB: "fa-regular fa-square",
-							MATB: "fa-regular fa-square",
-							WSWB: "fa-regular fa-square",
-							DSWB: "fa-regular fa-square",
-							ECPB: "fa-regular fa-square",
-							WSGB: "fa-regular fa-square"
-						}[entry.filetype] || "fa-regular fa-file"
-					}`,
+					parent: separatePartitions ? `${entry.partitions[0].id}-${path.split("/").slice(0, -1).join("/")}` : path.split("/").slice(0, -1).join("/"),
+					icon: getIconForResourceType(entry.filetype),
 					text: (
 						(params ? `[${path.split("/").at(-1)}](${params})` : path.split("/").at(-1)) +
 						((platformType === ".entitytype" &&
@@ -374,54 +330,8 @@
 			} else {
 				tree.settings!.core.data.push({
 					id: entry.hash,
-					parent: separatePartitions ? `partition-${entry.partition[0]}` : "#",
-					icon: `${
-						{
-							TEMP: "fa-solid fa-cubes-stacked",
-							ASET: "fa-regular fa-rectangle-list",
-							CPPT: "fa-solid fa-diagram-project",
-							TEXT: "fa-regular fa-image",
-							TEXD: "fa-regular fa-image",
-							MRTN: "fa-solid fa-person-running",
-							FXAS: "fa-solid fa-person-running",
-							ATMD: "fa-solid fa-person-running",
-							UICT: "fa-regular fa-window-restore",
-							PRIM: "fa-solid fa-shapes",
-							WSGT: "fa-solid fa-volume-high",
-							WSWT: "fa-solid fa-volume-high",
-							WBNK: "fa-solid fa-volume-high",
-							WWEV: "fa-solid fa-volume-high",
-							WWFX: "fa-solid fa-explosion",
-							WWEM: "fa-solid fa-music",
-							WWES: "fa-solid fa-comments",
-							SDEF: "fa-solid fa-comments",
-							DLGE: "fa-solid fa-closed-captioning",
-							LOCR: "fa-solid fa-language",
-							RTLV: "fa-regular fa-closed-captioning",
-							REPO: "fa-solid fa-code",
-							JSON: "fa-solid fa-code",
-							ORES: "fa-solid fa-code",
-							GFXV: "fa-solid fa-film",
-							LINE: "fa-solid fa-comment",
-							CRMD: "fa-solid fa-people-group",
-							NAVP: "fa-solid fa-route",
-							AIRG: "fa-solid fa-route",
-							AIBX: "fa-regular fa-user",
-							AIBZ: "fa-regular fa-user",
-							AIBB: "fa-regular fa-user",
-							YSHP: "fa-solid fa-baseball-bat-ball",
-							ALOC: "fa-solid fa-car-burst",
-							TBLU: "fa-regular fa-square",
-							CBLU: "fa-regular fa-square",
-							ASEB: "fa-regular fa-square",
-							UICB: "fa-regular fa-square",
-							MATB: "fa-regular fa-square",
-							WSWB: "fa-regular fa-square",
-							DSWB: "fa-regular fa-square",
-							ECPB: "fa-regular fa-square",
-							WSGB: "fa-regular fa-square"
-						}[entry.filetype] || "fa-regular fa-file"
-					}`,
+					parent: separatePartitions ? `partition-${entry.partitions[0].id}` : "#",
+					icon: getIconForResourceType(entry.filetype),
 					text: entry.hint ? `${entry.hint} (${entry.hash}.${entry.filetype})` : `${entry.hash}.${entry.filetype}`,
 					folder: false,
 					path: null,

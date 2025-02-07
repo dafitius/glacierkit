@@ -45,6 +45,7 @@ use crate::{
 	get_loaded_game_version
 };
 use crate::{send_notification, Notification, NotificationKind};
+use crate::model::GameBrowserPartitionInfo;
 
 #[try_fn]
 #[context("Couldn't handle tool event")]
@@ -869,100 +870,52 @@ pub async fn handle_tool_event(app: &AppHandle, event: ToolEvent) -> Result<()> 
 									install.platform
 								),
 								entries: {
-									if matches!(filter, SearchFilter::All) {
-										hash_list
-											.entries
-											.par_iter()
-											.filter(|(hash, _)| resource_reverse_dependencies.contains_key(*hash))
-											.filter(|(hash, entry)| {
-												query_terms.iter().all(|&y| {
-													let mut s = format!(
-														"{}{}{}.{}",
-														entry.path.as_deref().unwrap_or(""),
-														entry.hint.as_deref().unwrap_or(""),
-														hash,
-														entry.resource_type
-													);
-
-													s.make_ascii_lowercase();
-
-													s.contains(y)
-												})
+									let query_filtered_iter = hash_list
+										.entries
+										.par_iter()
+										.filter(|(hash, _)| resource_reverse_dependencies.contains_key(*hash)) //why?
+										.filter(|(_, entry)| match filter {
+										SearchFilter::All => true,
+										_ => filter_includes.iter().any(|filter_type| entry.resource_type == *filter_type)
+										})
+										.filter(|(hash, entry)| {
+											let path = entry.path.as_deref().unwrap_or("").to_ascii_lowercase();
+											let hint = entry.hint.as_deref().unwrap_or("").to_ascii_lowercase();
+											let hash_lower = hash.to_string().to_ascii_lowercase();
+											let resource_type = entry.resource_type.to_string().to_ascii_lowercase();
+											query_terms.iter().all(|term| {
+												path.contains(term) || hint.contains(term) || hash_lower.contains(term) || resource_type.contains(term)
 											})
-											.map(|(&hash, entry)| GameBrowserEntry {
-												hash,
-												path: entry.path.to_owned(),
-												hint: entry.hint.to_owned(),
-												filetype: entry.resource_type,
-												partition: {
-													let rrid = RuntimeResourceID::from(hash);
+										});
 
-													let partition = game_files
-														.partitions
-														.iter()
-														.find(|x| x.contains(&rrid))
-														.unwrap();
+									query_filtered_iter
+										.map(|(&hash, entry)| {
+											let rrid = RuntimeResourceID::from(hash);
 
-													(
-														partition.partition_info().id.to_string(),
-														partition
-															.partition_info()
-															.name
-															.to_owned()
-															.unwrap_or("<unnamed>".into())
-													)
+											let partitions = game_files.partitions.iter().flat_map(|partition|{
+												let contains = partition.contains(&rrid);
+												let removal_indices = partition.resource_removal_indices(&rrid);
+												// Only include partitions that either contain rrid or have removed it.
+												if !contains && removal_indices.is_empty() {
+													return None;
 												}
-											})
-											.collect()
-									} else {
-										hash_list
-											.entries
-											.par_iter()
-											.filter(|(hash, _)| resource_reverse_dependencies.contains_key(*hash))
-											.filter(|(_, entry)| {
-												filter_includes.iter().any(|&x| entry.resource_type == x)
-											})
-											.filter(|(hash, entry)| {
-												query_terms.iter().all(|&y| {
-													let mut s = format!(
-														"{}{}{}.{}",
-														entry.path.as_deref().unwrap_or(""),
-														entry.hint.as_deref().unwrap_or(""),
-														hash,
-														entry.resource_type
-													);
 
-													s.make_ascii_lowercase();
-
-													s.contains(y)
+												Some(GameBrowserPartitionInfo{
+													id: partition.partition_info().id.to_string(),
+													name: partition.partition_info().name.clone(),
+													removed: !contains
 												})
-											})
-											.map(|(&hash, entry)| GameBrowserEntry {
+											}).collect::<Vec<_>>();
+
+											GameBrowserEntry {
 												hash,
-												path: entry.path.to_owned(),
-												hint: entry.hint.to_owned(),
-												filetype: entry.resource_type,
-												partition: {
-													let rrid = RuntimeResourceID::from(hash);
-
-													let partition = game_files
-														.partitions
-														.iter()
-														.find(|x| x.contains(&rrid))
-														.unwrap();
-
-													(
-														partition.partition_info().id.to_string(),
-														partition
-															.partition_info()
-															.name
-															.to_owned()
-															.unwrap_or("<unnamed>".into())
-													)
-												}
-											})
-											.collect()
-									}
+												path: entry.path.clone(),
+												hint: entry.hint.clone(),
+												filetype: entry.resource_type.clone(),
+												partitions,
+											}
+										})
+										.collect()
 								}
 							}))
 						)?;
