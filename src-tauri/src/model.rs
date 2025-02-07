@@ -133,7 +133,15 @@ pub struct GameBrowserEntry {
 	pub path: Option<String>,
 	pub hint: Option<String>,
 	pub filetype: ResourceType,
-	pub partition: (String, String)
+	pub partitions: Vec<GameBrowserPartitionInfo>
+}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[serde(rename_all = "camelCase")]
+pub struct GameBrowserPartitionInfo {
+	pub id: String,
+	pub name: Option<String>,
+	pub removed: bool,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
