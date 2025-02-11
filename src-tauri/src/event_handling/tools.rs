@@ -809,13 +809,14 @@ pub async fn handle_tool_event(app: &AppHandle, event: ToolEvent) -> Result<()> 
 		},
 
 		ToolEvent::GameBrowser(event) => match event {
-			GameBrowserEvent::Select(hash) => {
+			GameBrowserEvent::Select(hash, partition) => {
 				let id = Uuid::new_v4();
 
 				app_state.editor_states.insert(
 					id.to_owned(),
 					EditorState {
 						file: None,
+						partition: Some(partition),
 						data: EditorData::ResourceOverview { hash: hash.to_owned() }
 					}
 				);
@@ -925,12 +926,12 @@ pub async fn handle_tool_event(app: &AppHandle, event: ToolEvent) -> Result<()> 
 				finish_task(app, task)?;
 			}
 
-			GameBrowserEvent::OpenInEditor(hash) => {
+			GameBrowserEvent::OpenInEditor{hash, partition} => {
 				if let Some(game_files) = app_state.game_files.load().as_ref()
 					&& let Some(install) = app_settings.load().game_install.as_ref()
 					&& let Some(hash_list) = app_state.hash_list.load().as_ref()
 				{
-					open_in_editor(app, game_files, install, hash_list, hash).await?;
+					open_in_editor(app, game_files, install, hash_list, Some(partition), hash).await?;
 				}
 			}
 		},

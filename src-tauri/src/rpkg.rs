@@ -49,13 +49,35 @@ pub fn extract_latest_resource(
 	bail!("Couldn't find the resource in any partition");
 }
 
+/// Extract a specified copy of a resource.
+/// The partition_id is used to search "from" a partition. If the resource is not found in the partition, it will attempt to find it in the parent partition.
+#[context("Couldn't extract resource {}", resource.clone().into())]
+pub fn extract_resource(
+	game_files: &PartitionManager,
+	partition_id: &str,
+	resource: &(impl Into<RuntimeID> + Clone)
+) -> Result<(ExtendedResourceMetadata, Vec<u8>)> {
+	let runtime_id: RuntimeID = resource.clone().into();
+	let resource_id = RuntimeResourceID::from(runtime_id);
+	if let Ok((info, partition_id)) = game_files.resolve_resource_from(partition_id.parse()?, &resource_id) {
+		return Ok((
+			info.try_into()?,
+			game_files
+				.read_resource_from(partition_id, resource_id)
+				.context("Couldn't extract resource using rpkg-rs")?
+		));
+	}
+
+	bail!("Couldn't find the resource in any partition");
+}
+
 /// Get the metadata of the latest copy of a resource. Faster than fully extracting the resource.
-#[context("Couldn't extract metadata for resource {}", resource.clone().into().get_id())]
+#[context("Couldn't extract metadata for resource {}", resource.clone().into())]
 pub fn extract_latest_metadata(
 	game_files: &PartitionManager,
-	resource: &(impl Into<PathedID> + Clone)
+	resource: &(impl Into<RuntimeID> + Clone)
 ) -> Result<ExtendedResourceMetadata> {
-	let resource_id = RuntimeResourceID::from(resource.clone().into().get_id());
+	let resource_id = RuntimeResourceID::from(resource.clone().into());
 
 	for partition in &game_files.partitions {
 		if let Some((info, _)) = partition
@@ -71,12 +93,12 @@ pub fn extract_latest_metadata(
 }
 
 /// Get miscellaneous information (filetype, chunk and patch, dependencies with hash and flag) for the latest copy of a resource.
-#[context("Couldn't extract overview info for resource {}", &resource.clone().into().get_id())]
+#[context("Couldn't extract overview info for resource {}", &resource.clone().into())]
 pub fn extract_latest_overview_info(
 	game_files: &PartitionManager,
-	resource: &(impl Into<PathedID> + Clone)
+	resource: &(impl Into<RuntimeID> + Clone)
 ) -> Result<(ResourceType, String, Vec<(RuntimeID, String)>)> {
-	let resource_id = RuntimeResourceID::from(resource.clone().into().get_id());
+	let resource_id = RuntimeResourceID::from(resource.clone().into());
 
 	for partition in &game_files.partitions {
 		if let Some((info, patchlevel)) = partition
@@ -115,6 +137,74 @@ pub fn extract_latest_overview_info(
 	}
 
 	bail!("Couldn't find the resource in any RPKG");
+}
+
+/// Get miscellaneous information (filetype, chunk and patch, dependencies with hash and flag) for the a specific copy of a resource.
+/// The partition_id is used to search "from" a partition. If the resource is not found in the partition, it will attempt to find it in the parent partition.
+#[context("Couldn't extract overview info for resource {}", &resource.clone().into())]
+pub fn resolve_overview_info(
+	game_files: &PartitionManager,
+	resource: &(impl Into<RuntimeID> + Clone),
+	partition_id: &str
+) -> Result<(ResourceType, String, Vec<(RuntimeID, String)>)> {
+	let resource_id = RuntimeResourceID::from(resource.clone().into());
+
+	if let Ok((info, res_partition_id)) = game_files.resolve_resource_from(partition_id.parse()?, &resource_id) {
+		let partition = game_files
+			.find_partition(res_partition_id)
+			.context("Couldn't find partition")?;
+		let patchlevel = partition
+			.resource_patch_indices(&resource_id)
+			.into_iter()
+			.max()
+			.context("Couldn't find patch indices")?;
+		let package_name = match patchlevel {
+			PatchId::Base => partition.partition_info().id.to_string(),
+			PatchId::Patch(level) => format!("{}patch{}", partition.partition_info().id, level)
+		};
+
+		return Ok((
+			info.data_type().try_into()?,
+			match &partition.partition_info().name {
+				Some(name) => format!("{} ({})", name, package_name),
+				None => package_name
+			},
+			info.references()
+				.iter()
+				.map(|(res_id, flag)| {
+					Ok((
+						(*res_id).try_into()?,
+						format!(
+							"{:02X}",
+							match flag {
+								ResourceReferenceFlags::Legacy(x) => x.into_bits(),
+								ResourceReferenceFlags::Standard(x) => x.into_bits()
+							}
+						)
+					))
+				})
+				.collect::<Result<_>>()?
+		));
+	}
+
+	bail!("Couldn't find the resource in the given partition");
+}
+
+// Get information for the a specific copy of a resource from a specific partition.
+/// The partition_id is used to search "from" a partition. If the resource is not found in the partition, it will attempt to find it in the parent partition.
+#[context("Couldn't extract overview info for resource {}", &resource.clone().into())]
+pub fn resolve_partition_from(
+	game_files: &PartitionManager,
+	resource: &(impl Into<RuntimeID> + Clone),
+	partition_id: &str
+) -> Result<String> {
+	let resource_id = RuntimeResourceID::from(resource.clone().into());
+
+	if let Ok((_, res_partition_id)) = game_files.resolve_resource_from(partition_id.parse()?, &resource_id) {
+		return Ok(res_partition_id.to_string());
+	}
+
+	bail!("Couldn't find the resource in the given partition");
 }
 
 /// Extract an entity by its factory and put it in the cache. Returns early if the entity is already cached.

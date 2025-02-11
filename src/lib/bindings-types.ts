@@ -31,7 +31,7 @@ export type ContentSearchEvent = { type: "search"; data: [string, string[], bool
 
 export type ContentSearchRequest = { type: "setEnabled"; data: boolean } | { type: "setPartitions"; data: ([string, string])[] }
 
-export type ContentSearchResultsEvent = { type: "initialise"; data: { id: string } } | { type: "openResourceOverview"; data: { id: string; hash: string } }
+export type ContentSearchResultsEvent = { type: "initialise"; data: { id: string } } | { type: "openResourceOverview"; data: { id: string; hash: string; partition: string } }
 
 export type ContentSearchResultsRequest = { type: "initialise"; data: { id: string; 
 /**
@@ -233,7 +233,7 @@ exposedEntity?: string | null }
 
 export type GameBrowserEntry = { hash: string; path: string | null; hint: string | null; filetype: string; partitions: GameBrowserPartitionInfo[] }
 
-export type GameBrowserEvent = { type: "select"; data: string } | { type: "search"; data: [string, SearchFilter] } | { type: "openInEditor"; data: string }
+export type GameBrowserEvent = { type: "select"; data: [string, string] } | { type: "search"; data: [string, SearchFilter] } | { type: "openInEditor"; data: { hash: string; partition: string } }
 
 export type GameBrowserPartitionInfo = { id: string; name: string | null; removed: boolean }
 
@@ -452,13 +452,23 @@ export type ResourceChangelogOperation = "Delete" | "Init" | "Edit"
 
 export type ResourceOverviewData = { type: "Generic" } | { type: "Entity"; data: { blueprint_hash: string; blueprint_path_or_hint: string | null } } | { type: "GenericRL"; data: { json: string } } | { type: "Json"; data: { json: string } } | { type: "Ores"; data: { json: string } } | { type: "Image"; data: { image_path: string; dds_data: [string, string] | null } } | { type: "Audio"; data: { wav_path: string } } | { type: "Mesh"; data: { obj: string; bounding_box: [number, number, number, number, number, number] } } | { type: "MultiAudio"; data: { name: string; wav_paths: ([string, string])[] } } | { type: "Repository" } | { type: "Unlockables" } | { type: "HMLanguages"; data: { json: string } } | { type: "LocalisedLine"; data: { languages: ([string, string])[] } } | { type: "MaterialInstance"; data: { json: string } } | { type: "MaterialEntity"; data: { json: string } }
 
+export type ResourceOverviewDependency = { hash: string; filetype: string; path_or_hint: string | null; 
+/**
+ * Indicates additional info about the dependency (e.g., patch or flag).
+ */
+flag: string; 
+/**
+ * Whether this dependency is present in the current game version.
+ */
+partition: string | null; is_in_current_version: boolean }
+
 export type ResourceOverviewEvent = { type: "initialise"; data: { id: string } } | { type: "followDependency"; data: { id: string; new_hash: string } } | { type: "followDependencyInNewTab"; data: { id: string; hash: string } } | { type: "openInEditor"; data: { id: string } } | { type: "extractAsQN"; data: { id: string } } | { type: "extractAsFile"; data: { id: string } } | { type: "extractTEMPAsRT"; data: { id: string } } | { type: "extractTBLUAsFile"; data: { id: string } } | { type: "extractTBLUAsRT"; data: { id: string } } | { type: "extractAsRTGeneric"; data: { id: string } } | { type: "extractAsImage"; data: { id: string } } | { type: "extractAsWav"; data: { id: string } } | { type: "extractMultiWav"; data: { id: string } } | { type: "extractSpecificMultiWav"; data: { id: string; index: number } } | { type: "extractORESAsJson"; data: { id: string } } | { type: "extractAsHMLanguages"; data: { id: string } }
 
 export type ResourceOverviewRequest = { type: "initialise"; data: { id: string; hash: string; filetype: string; chunk_patch: string; path_or_hint: string | null; 
 /**
  * Hash, type, path/hint, flag, is actually in current game version
  */
-dependencies: ([string, string, string | null, string, boolean])[]; 
+dependencies: ResourceOverviewDependency[]; 
 /**
  * Hash, type, path/hint
  */

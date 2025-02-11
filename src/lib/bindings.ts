@@ -14,7 +14,7 @@ return await TAURI_INVOKE("plugin:tauri-specta|show_in_folder", { path });
 /** user-defined types **/
 
 export type ContentSearchEvent = { type: "search"; data: [string, string[], boolean, string[]] }
-export type ContentSearchResultsEvent = { type: "initialise"; data: { id: string } } | { type: "openResourceOverview"; data: { id: string; hash: string } }
+export type ContentSearchResultsEvent = { type: "initialise"; data: { id: string } } | { type: "openResourceOverview"; data: { id: string; hash: string; partition: string } }
 export type CopiedEntityData = { 
 /**
  * Which entity has been copied (and should be parented to the selection when pasting).
@@ -61,7 +61,7 @@ externalScene: string | null;
  * The sub-entity to reference that is exposed by the referenced entity.
  */
 exposedEntity?: string | null }
-export type GameBrowserEvent = { type: "select"; data: string } | { type: "search"; data: [string, SearchFilter] } | { type: "openInEditor"; data: string }
+export type GameBrowserEvent = { type: "select"; data: [string, string] } | { type: "search"; data: [string, SearchFilter] } | { type: "openInEditor"; data: { hash: string; partition: string } }
 export type GlobalEvent = { type: "setSeenAnnouncements"; data: string[] } | { type: "loadWorkspace"; data: string } | { type: "selectAndOpenFile" } | { type: "selectTab"; data: string | null } | { type: "removeTab"; data: string } | { type: "saveTab"; data: string } | { type: "uploadLogAndReport"; data: string } | { type: "uploadLastPanic" } | { type: "clearLastPanic" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 /**

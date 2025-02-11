@@ -61,7 +61,8 @@
 									type: "openResourceOverview",
 									data: {
 										id,
-										hash
+										hash,
+										//TODO: add partition
 									}
 								}
 							}

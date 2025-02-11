@@ -43,15 +43,17 @@ use crate::{
 	get_loaded_game_version,
 	languages::get_language_map,
 	model::{
-		AppSettings, AppState, EditorData, EditorRequest, EditorState, EditorType, GlobalRequest, Request,
-		ResourceOverviewData, ResourceOverviewEvent, ResourceOverviewRequest
+		AppSettings, AppState, EditorData, EditorRequest, EditorState, EditorType, GlobalRequest, Request, ResourceOverviewData, ResourceOverviewDependency, ResourceOverviewEvent, ResourceOverviewRequest
 	},
 	resourcelib::{
 		convert_generic, h2016_convert_binary_to_blueprint, h2016_convert_binary_to_factory,
 		h2_convert_binary_to_blueprint, h2_convert_binary_to_factory, h3_convert_binary_to_blueprint,
 		h3_convert_binary_to_factory
 	},
-	rpkg::{extract_entity, extract_latest_overview_info, extract_latest_resource, extract_resource_changelog},
+	rpkg::{
+		extract_entity, extract_latest_overview_info, extract_latest_resource, extract_resource_changelog,
+		resolve_overview_info, resolve_partition_from
+	},
 	send_notification, send_request, start_task, Notification, NotificationKind, RunCommandExt
 };
 
@@ -62,12 +64,18 @@ pub fn initialise_resource_overview(
 	app_state: &State<AppState>,
 	id: Uuid,
 	hash: RuntimeID,
+	partition_id: Option<String>,
 	game_files: &PartitionManager,
 	game_version: GameVersion,
 	resource_reverse_dependencies: &Arc<HashMap<RuntimeID, Vec<RuntimeID>>>,
 	hash_list: &Arc<HashList>
 ) -> Result<()> {
-	let (filetype, chunk_patch, deps) = extract_latest_overview_info(game_files, &hash)?;
+
+	let (filetype, chunk_patch, deps) = if let Some(partition) = &partition_id {
+		resolve_overview_info(game_files, &hash, partition)?
+	} else {
+		extract_latest_overview_info(game_files, &hash)?
+	};
 
 	send_request(
 		app,
@@ -82,21 +90,24 @@ pub fn initialise_resource_overview(
 				.and_then(|x| x.path.as_ref().or(x.hint.as_ref()).cloned()),
 			dependencies: deps
 				.par_iter()
-				.map(|(hash, flag)| {
-					(
-						hash.to_string(),
-						hash_list
-							.entries
-							.get(hash)
-							.map(|x| x.resource_type.into())
-							.unwrap_or("".into()),
-						hash_list
-							.entries
-							.get(hash)
-							.and_then(|x| x.path.as_ref().or(x.hint.as_ref()).cloned()),
-						flag.to_owned(),
-						resource_reverse_dependencies.contains_key(hash)
-					)
+				.map(|(hash, flag)| ResourceOverviewDependency {
+					hash: hash.to_string(),
+					filetype: hash_list
+						.entries
+						.get(hash)
+						.map(|x| x.resource_type.into())
+						.unwrap_or("".into()),
+					path_or_hint: hash_list
+						.entries
+						.get(hash)
+						.and_then(|x| x.path.as_ref().or(x.hint.as_ref()).cloned()),
+					flag: flag.to_owned(),
+					partition: if let Some(ref partition) = &partition_id {
+						resolve_partition_from(&game_files, &hash.clone(), &partition).ok()
+					} else {
+						None
+					},
+					is_in_current_version: resource_reverse_dependencies.contains_key(hash)
 				})
 				.collect(),
 			reverse_dependencies: resource_reverse_dependencies
@@ -815,8 +826,8 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 		ResourceOverviewEvent::Initialise { id } => {
 			let editor_state = app_state.editor_states.get(&id).context("No such editor")?;
 
-			let hash = match editor_state.data {
-				EditorData::ResourceOverview { hash, .. } => hash,
+			let hash = match &editor_state.data {
+				EditorData::ResourceOverview { hash } => hash,
 
 				_ => {
 					Err(anyhow!("Editor {} is not a resource overview", id))?;
@@ -835,7 +846,8 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 					app,
 					&app_state,
 					id,
-					hash,
+					hash.to_owned(),
+					editor_state.partition.to_owned(),
 					game_files,
 					get_loaded_game_version(app, install)?,
 					resource_reverse_dependencies,
@@ -850,7 +862,7 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 			let mut editor_state = app_state.editor_states.get_mut(&id).context("No such editor")?;
 
 			let hash = match editor_state.data {
-				EditorData::ResourceOverview { ref mut hash, .. } => hash,
+				EditorData::ResourceOverview { ref mut hash } => hash,
 
 				_ => {
 					Err(anyhow!("Editor {} is not a resource overview", id))?;
@@ -872,6 +884,7 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 					&app_state,
 					id,
 					*hash,
+					editor_state.partition.to_owned(),
 					game_files,
 					get_loaded_game_version(app, install)?,
 					resource_reverse_dependencies,
@@ -890,49 +903,66 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 			finish_task(app, task)?;
 		}
 
-		ResourceOverviewEvent::FollowDependencyInNewTab { hash, .. } => {
-			let id = Uuid::new_v4();
+		ResourceOverviewEvent::FollowDependencyInNewTab { id, hash } => {
+			let editor_state = app_state.editor_states.get(&id).context("No such editor")?;
 
-			app_state.editor_states.insert(
-				id.to_owned(),
-				EditorState {
-					file: None,
-					data: EditorData::ResourceOverview {
-						hash: RuntimeID::from_any(&hash)?
+			if let Some(game_files) = app_state.game_files.load().as_ref()
+				&& let Some(origin_partition_id) = editor_state.partition.as_ref()
+			{
+				let new_id = Uuid::new_v4();
+
+				app_state.editor_states.insert(
+					new_id.to_owned(),
+					EditorState {
+						file: None,
+						partition: resolve_partition_from(
+							&game_files,
+							&RuntimeID::from_str(&hash.to_owned())?,
+							origin_partition_id
+						)
+						.ok(),
+						data: EditorData::ResourceOverview {
+							hash: RuntimeID::from_any(&hash)?
+						}
 					}
-				}
-			);
+				);
 
-			send_request(
-				app,
-				Request::Global(GlobalRequest::CreateTab {
-					id,
-					name: format!("Resource overview ({hash})"),
-					editor_type: EditorType::ResourceOverview
-				})
-			)?;
+				send_request(
+					app,
+					Request::Global(GlobalRequest::CreateTab {
+						id: new_id,
+						name: format!("Resource overview ({hash})"),
+						editor_type: EditorType::ResourceOverview
+					})
+				)?;
+			}
 		}
 
 		ResourceOverviewEvent::OpenInEditor { id } => {
-			let hash = {
-				let editor_state = app_state.editor_states.get(&id).context("No such editor")?;
+			let editor_state = app_state.editor_states.get(&id).context("No such editor")?;
+			let hash = match editor_state.data {
+				EditorData::ResourceOverview { hash, .. } => hash,
 
-				match editor_state.data {
-					EditorData::ResourceOverview { hash, .. } => hash,
-
-					_ => {
-						Err(anyhow!("Editor {} is not a resource overview", id))?;
-						panic!();
-					}
+				_ => {
+					Err(anyhow!("Editor {} is not a resource overview", id))?;
+					panic!();
 				}
-				.to_owned()
-			};
+			}
+			.to_owned();
 
 			if let Some(game_files) = app_state.game_files.load().as_ref()
 				&& let Some(install) = app_settings.load().game_install.as_ref()
 				&& let Some(hash_list) = app_state.hash_list.load().as_ref()
 			{
-				open_in_editor(app, game_files, install, hash_list, hash).await?;
+				open_in_editor(
+					app,
+					game_files,
+					install,
+					hash_list,
+					editor_state.partition.to_owned(),
+					hash
+				)
+				.await?;
 			}
 		}
 

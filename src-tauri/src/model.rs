@@ -69,14 +69,15 @@ pub struct AppState {
 #[derive(Debug)]
 pub struct EditorState {
 	pub file: Option<PathBuf>,
-	pub data: EditorData
+	pub partition: Option<String>,
+	pub data: EditorData,
 }
 
 #[derive(Debug, Clone)]
 pub enum EditorData {
 	Nil,
 	ResourceOverview {
-		hash: RuntimeID
+		hash: RuntimeID,
 	},
 	Text {
 		content: String,
@@ -243,6 +244,18 @@ pub enum ResourceOverviewData {
 	}
 }
 
+#[derive(Type, Serialize, Deserialize, Clone, derive_more::Debug)]
+pub struct ResourceOverviewDependency {
+	pub hash: String,
+	pub filetype: String,
+	pub path_or_hint: Option<String>,
+	/// Indicates additional info about the dependency (e.g., patch or flag).
+	pub flag: String,
+	/// Whether this dependency is present in the current game version.
+	pub partition: Option<String>,
+	pub is_in_current_version: bool,
+}
+
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ResourceChangelogEntry {
@@ -345,9 +358,12 @@ strike! {
 			}),
 
 			GameBrowser(pub enum GameBrowserEvent {
-				Select(RuntimeID),
+				Select(RuntimeID, String),
 				Search(String, SearchFilter),
-				OpenInEditor(RuntimeID)
+				OpenInEditor{
+					hash: RuntimeID,
+					partition: String
+				}
 			}),
 
 			Settings(pub enum SettingsEvent {
@@ -501,7 +517,7 @@ strike! {
 
 					OpenFactory {
 						editor_id: Uuid,
-						factory: String
+						factory: String,
 					},
 
 					SignalPin {
@@ -513,7 +529,7 @@ strike! {
 
 					OpenResourceOverview {
 						editor_id: Uuid,
-						resource: String
+						resource: String,
 					}
 				}),
 
@@ -600,7 +616,7 @@ strike! {
 
 				FollowDependencyInNewTab {
 					id: Uuid,
-					hash: String
+					hash: String,
 				},
 
 				OpenInEditor {
@@ -716,7 +732,8 @@ strike! {
 
 				OpenResourceOverview {
 					id: Uuid,
-					hash: RuntimeID
+					hash: RuntimeID,
+					partition: String
 				}
 			})
 		}),
@@ -1005,7 +1022,7 @@ strike! {
 
 					/// Hash, type, path/hint, flag, is actually in current game version
 					#[debug(skip)]
-					dependencies: Vec<(String, String, Option<String>, String, bool)>,
+					dependencies: Vec<ResourceOverviewDependency>,
 
 					/// Hash, type, path/hint
 					#[debug(skip)]

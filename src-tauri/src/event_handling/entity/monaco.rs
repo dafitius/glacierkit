@@ -25,7 +25,7 @@ use crate::{
 		AppSettings, AppState, EditorData, EditorRequest, EditorState, EditorType, EditorValidity, EntityEditorRequest,
 		EntityMonacoEvent, EntityMonacoRequest, EntityTreeRequest, GlobalRequest, Request
 	},
-	rpkg::extract_latest_overview_info,
+	rpkg::{extract_latest_overview_info, resolve_overview_info, resolve_partition_from},
 	send_notification, send_request, start_task, Notification, NotificationKind
 };
 
@@ -101,8 +101,10 @@ pub async fn handle(app: &AppHandle, event: EntityMonacoEvent) -> Result<()> {
 			)?;
 		}
 
-		EntityMonacoEvent::OpenFactory { factory, .. } => {
-			open_factory(app, factory).await?;
+		EntityMonacoEvent::OpenFactory { editor_id, factory } => {
+			let partition = app_state.editor_states.get(&editor_id).context("No such editor")?.partition.clone();
+
+			open_factory(app, factory, partition.unwrap()).await?; //TODO: remove unwrap
 		}
 
 		EntityMonacoEvent::SignalPin {
@@ -129,8 +131,13 @@ pub async fn handle(app: &AppHandle, event: EntityMonacoEvent) -> Result<()> {
 				.await?;
 		}
 
-		EntityMonacoEvent::OpenResourceOverview { resource, .. } => {
-			if let Some(resource_reverse_dependencies) = app_state.resource_reverse_dependencies.load().as_ref() {
+		EntityMonacoEvent::OpenResourceOverview { editor_id, resource } => {
+
+			let editor_state = app_state.editor_states.get(&editor_id).context("No such editor")?;
+
+
+			if let Some(resource_reverse_dependencies) = app_state.resource_reverse_dependencies.load().as_ref() && 
+			let Some(game_files) = app_state.game_files.load().as_ref() {
 				let resource = RuntimeID::from_any(&resource)?;
 
 				if resource_reverse_dependencies.contains_key(&resource) {
@@ -140,7 +147,10 @@ pub async fn handle(app: &AppHandle, event: EntityMonacoEvent) -> Result<()> {
 						id.to_owned(),
 						EditorState {
 							file: None,
-							data: EditorData::ResourceOverview { hash: resource }
+							partition: resolve_partition_from(&game_files, &resource, editor_state.partition.as_deref().unwrap()).ok(), //TODO: Unwrap better
+							data: EditorData::ResourceOverview { 
+								hash: resource
+							}
 						}
 					);
 
@@ -490,7 +500,7 @@ pub async fn update_content(app: &AppHandle, editor_id: Uuid, entity_id: String,
 
 #[try_fn]
 #[context("Couldn't handle open factory event")]
-pub async fn open_factory(app: &AppHandle, factory: String) -> Result<()> {
+pub async fn open_factory(app: &AppHandle, factory: String, from_partition: String) -> Result<()> {
 	let app_settings = app.state::<ArcSwap<AppSettings>>();
 	let app_state = app.state::<AppState>();
 
@@ -500,9 +510,10 @@ pub async fn open_factory(app: &AppHandle, factory: String) -> Result<()> {
 	{
 		let factory = RuntimeID::from_any(&factory)?;
 
-		if let Ok((filetype, _, _)) = extract_latest_overview_info(game_files, &factory) {
+		if let Ok((filetype, _, _)) = resolve_overview_info(game_files, &factory, &from_partition) {
 			if filetype == "TEMP" {
-				open_in_editor(app, game_files, install, hash_list, factory).await?;
+				let temp_partition = resolve_partition_from(game_files, &factory, &from_partition).ok();
+				open_in_editor(app, game_files, install, hash_list, temp_partition, factory).await?;
 			} else {
 				let id = Uuid::new_v4();
 
@@ -510,8 +521,9 @@ pub async fn open_factory(app: &AppHandle, factory: String) -> Result<()> {
 					id.to_owned(),
 					EditorState {
 						file: None,
+						partition: Some(from_partition), //TODO: Check if this is correct
 						data: EditorData::ResourceOverview {
-							hash: factory.to_owned()
+							hash: factory.to_owned(),
 						}
 					}
 				);

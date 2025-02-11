@@ -621,6 +621,7 @@ pub fn start_content_search(
 			id.to_owned(),
 			EditorState {
 				file: None,
+				partition: None,
 				data: EditorData::ContentSearchResults { results }
 			}
 		);

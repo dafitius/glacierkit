@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ResourceChangelogEntry, ResourceOverviewData, ResourceOverviewRequest } from "$lib/bindings-types"
+	import type { ResourceChangelogEntry, ResourceOverviewData, ResourceOverviewDependency, ResourceOverviewRequest } from "$lib/bindings-types"
 	import { event } from "$lib/utils"
 	import {
 		Accordion,
@@ -24,6 +24,7 @@
 		TableHead,
 		TableHeader,
 		TableRow,
+		Tag,
 		Tile
 	} from "carbon-components-svelte"
 	import { onMount } from "svelte"
@@ -48,7 +49,7 @@
 	let filetype = ""
 	let partition = ""
 	let pathOrHint: string | null = null
-	let dependencies: [string, string, string | null, string, boolean][] = []
+	let dependencies: ResourceOverviewDependency[] = []
 	let reverseDependencies: [string, string, string | null][] = []
 	let changelog: ResourceChangelogEntry[] = []
 	let data: ResourceOverviewData | null = null
@@ -819,8 +820,8 @@
 							class="h-full overflow-y-auto pr-2 flex flex-col gap-2"
 							use:help={{ title: "References", description: "Other resources that this resource depends on, listed in the order stored in the game files." }}
 						>
-							{#each dependencies as [hash, type, path, flag, inGame]}
-								{#if type}
+							{#each dependencies as dependency}
+								{#if dependency.filetype}
 									<ClickableTile
 										style="min-height: unset"
 										on:click={async (e) => {
@@ -835,39 +836,45 @@
 																type: "followDependency",
 																data: {
 																	id,
-																	new_hash: hash
+																	new_hash: dependency.hash
 																}
 															}
 														: {
 																type: "followDependencyInNewTab",
 																data: {
 																	id,
-																	hash
+																	hash: dependency.hash
 																}
 															}
 												}
 											})
 										}}
 									>
-										<div class="text-base -mt-1"
-											><span class="font-bold">{hash}.{type}</span>
-											{flag}</div
-										>
-										<div class="break-all">{path || "No path"}</div>
-										{#if !inGame}
-											<div class="text-base">Not present in game files</div>
+										<div class="text-base -mt-1">
+											<span class="font-bold">{dependency.hash}.{dependency.filetype}</span>
+											{dependency.flag}
+										</div>
+										<div class="break-all">{dependency.path_or_hint || "No path"}</div>
+										<div class="pt-1 -ml-2">
+											<Tag>{dependency.partition ?? "missing"}</Tag>
+											{#if !dependency.is_in_current_version}
+											<Tag type="red">Not in game files</Tag>
 										{/if}
+										</div>
+										
 									</ClickableTile>
 								{:else}
 									<div class="bg-[#303030] p-3">
 										<div class="text-base -mt-1"
-											><span class="font-bold">{hash}</span>
-											{flag}</div
+											><span class="font-bold">{dependency.hash}</span>
+											{dependency.flag}</div
 										>
 										<div class="break-all">Unknown resource</div>
-										{#if !inGame}
-											<div class="text-base">Not present in game files</div>
+										<div class="pt-1 -ml-2">
+											{#if !dependency.is_in_current_version}
+											<Tag type="red">Not in game files</Tag>
 										{/if}
+										</div>
 									</div>
 								{/if}
 							{/each}

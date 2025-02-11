@@ -21,7 +21,7 @@
 
 	let entityID: string | null = null
 	let validity: EditorValidity = { type: "Valid" }
-
+	let partition: string = ""
 	let destroyFunc = { run: () => {} }
 
 	let decorations: monaco.editor.IEditorDecorationsCollection

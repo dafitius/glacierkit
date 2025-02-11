@@ -35,7 +35,7 @@ use tryvial::try_fn;
 use uuid::Uuid;
 use velcro::vec;
 
-use crate::ores_repo::RepositoryItem;
+use crate::{ores_repo::RepositoryItem, rpkg::extract_resource};
 use crate::rpkg::extract_latest_resource;
 use crate::{event_handling::resource_overview::initialise_resource_overview, get_loaded_game_version};
 use crate::{
@@ -113,6 +113,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 					id.to_owned(),
 					EditorState {
 						file: Some(path.to_owned()),
+						partition: None,
 						data: EditorData::QNEntity {
 							entity: Box::new(entity),
 							settings: Default::default()
@@ -172,6 +173,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 						id.to_owned(),
 						EditorState {
 							file: Some(path.to_owned()),
+							partition: None,
 							data: EditorData::QNPatch {
 								base: Box::new(base),
 								current: Box::new(entity),
@@ -218,6 +220,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 					id.to_owned(),
 					EditorState {
 						file: Some(path.to_owned()),
+						partition: None,
 						data: EditorData::Text {
 							content: fs::read_to_string(path)
 								.context("Couldn't read file")?
@@ -244,6 +247,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 					id.to_owned(),
 					EditorState {
 						file: Some(path.to_owned()),
+						partition: None,
 						data: EditorData::Text {
 							content: fs::read_to_string(path)
 								.context("Couldn't read file")?
@@ -272,6 +276,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 					id.to_owned(),
 					EditorState {
 						file: Some(path.to_owned()),
+						partition: None,
 						data: EditorData::Text {
 							content: fs::read_to_string(path)
 								.context("Couldn't read file")?
@@ -321,6 +326,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 						id.to_owned(),
 						EditorState {
 							file: Some(path.to_owned()),
+							partition: None,
 							data: EditorData::RepositoryPatch {
 								base: from_value(base)?,
 								current: repository,
@@ -416,6 +422,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 						id.to_owned(),
 						EditorState {
 							file: Some(path.to_owned()),
+							partition: None,
 							data: EditorData::UnlockablesPatch {
 								base: from_value(base)?,
 								current: unlockables,
@@ -495,6 +502,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 								id.to_owned(),
 								EditorState {
 									file: Some(path.to_owned()),
+									partition: None,
 									data: EditorData::RepositoryPatch {
 										base: from_value(base)?,
 										current: repository,
@@ -603,6 +611,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 								id.to_owned(),
 								EditorState {
 									file: Some(path.to_owned()),
+									partition: None,
 									data: EditorData::UnlockablesPatch {
 										base: from_value(base)?,
 										current: unlockables,
@@ -643,6 +652,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 							id.to_owned(),
 							EditorState {
 								file: Some(path.to_owned()),
+								partition: None,
 								data: EditorData::Text {
 									content: fs::read_to_string(path)
 										.context("Couldn't read file")?
@@ -673,6 +683,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 					id.to_owned(),
 					EditorState {
 						file: Some(path.to_owned()),
+						partition: None,
 						data: EditorData::Text {
 							content: fs::read_to_string(path)
 								.context("Couldn't read file")?
@@ -703,6 +714,7 @@ pub async fn open_file(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
 					id.to_owned(),
 					EditorState {
 						file: Some(path.to_owned()),
+						partition: None,
 						data: EditorData::Nil
 					}
 				);
@@ -1028,14 +1040,15 @@ pub async fn load_game_files(app: &AppHandle) -> Result<()> {
 		let task = start_task(app, "Refreshing editors")?;
 
 		for editor in app_state.editor_states.iter_mut() {
-			if let EditorData::ResourceOverview { hash } = editor.data {
+			if let EditorData::ResourceOverview { hash, .. } = &editor.data {
 				let task = start_task(app, format!("Refreshing resource overview for {}", hash))?;
 
 				initialise_resource_overview(
 					app,
 					&app_state,
 					editor.key().to_owned(),
-					hash,
+					hash.to_owned(),
+					editor.partition.to_owned(),
 					game_files,
 					get_loaded_game_version(app, install)?,
 					resource_reverse_dependencies,
@@ -1058,7 +1071,8 @@ pub async fn open_in_editor(
 	game_files: &PartitionManager,
 	install: &PathBuf,
 	hash_list: &HashList,
-	hash: RuntimeID
+	partition_id: Option<String>,
+	hash: RuntimeID,
 ) -> Result<()> {
 	let app_state = app.state::<AppState>();
 
@@ -1114,6 +1128,7 @@ pub async fn open_in_editor(
 				id.to_owned(),
 				EditorState {
 					file: None,
+					partition: partition_id,
 					data: EditorData::QNPatch {
 						base: Box::new(entity.to_owned()),
 						current: Box::new(entity),
@@ -1149,6 +1164,7 @@ pub async fn open_in_editor(
 				id.to_owned(),
 				EditorState {
 					file: None,
+					partition: partition_id,
 					data: EditorData::RepositoryPatch {
 						base: repository.to_owned(),
 						current: repository,
@@ -1176,14 +1192,23 @@ pub async fn open_in_editor(
 
 			let id = Uuid::new_v4();
 
+			let unlockables_data = match &partition_id{
+				Some(partition) => {
+					extract_resource(game_files, partition, &"0057C2C3941115CA".parse::<RuntimeID>()?)?.1
+				},
+				_ => {
+					extract_latest_resource(game_files, &"0057C2C3941115CA".parse::<RuntimeID>()?)?.1
+				}
+			};
 			let unlockables: Vec<UnlockableItem> = from_str(&parse_json_ores(
-				&extract_latest_resource(game_files, &"0057C2C3941115CA".parse::<RuntimeID>()?)?.1
+				&unlockables_data
 			)?)?;
 
 			app_state.editor_states.insert(
 				id.to_owned(),
 				EditorState {
 					file: None,
+					partition: partition_id,
 					data: EditorData::UnlockablesPatch {
 						base: unlockables.to_owned(),
 						current: unlockables,

@@ -30,7 +30,7 @@
 				themes: {
 					name: "default",
 					dots: true,
-					icons: true
+					icons: true,
 				},
 				check_callback: false,
 				force_text: true,
@@ -195,7 +195,7 @@
 							}
 				}
 			},
-			plugins: ["contextmenu", "sort", "dnd"]
+			plugins: ["contextmenu", "sort", "dnd", "wholerow"]
 		})
 
 		tree = jQuery("#" + elemID).jstree()
@@ -210,7 +210,7 @@
 							type: "gameBrowser",
 							data: {
 								type: "select",
-								data: selected_node.id
+								data: [selected_node.id.split("@")[0], selected_node.id.split("@")[1]]
 							}
 						}
 					})
@@ -225,6 +225,16 @@
 				tree.open_all()
 			}
 		})
+
+		// jQuery("#" + elemID).on("mouseenter", function () {
+		// 	tree.settings!.core.themes!.dots = true
+		// 	// tree.refresh(true)
+		// })
+
+		// jQuery("#" + elemID).on("mouseleave", function () {
+		// 	tree.settings!.core.themes!.dots = false
+		// 	// tree.refresh(true)
+		// })
 	})
 
 	export async function handleRequest(request: GameBrowserRequest) {
@@ -258,86 +268,94 @@
 		const addedPartitions = new Set()
 
 		for (const entry of entries) {
-			if (separatePartitions && !addedPartitions.has(entry.partitions[0].id)) {
-				tree.settings!.core.data.push({
-					id: `partition-${entry.partitions[0].id}`,
-					parent: "#",
-					icon: "fa-solid fa-box",
-					text: `${entry.partitions[0].name ?? "<unnamed>"} (${entry.partitions[0].id})`,
-					folder: true,
-					path: null,
-					filetype: null,
-					chunk: entry.partitions[0].id
-				})
-
-				addedPartitions.add(entry.partitions[0].id)
-			}
-
-			if (entry.path) {
-				const path = /\[(.*)\](?:\.pc_|\(.*\)\.pc_)/.exec(entry.path)![1]
-				const params = /\[.*\]\((.*)\)\.pc_/.exec(entry.path)?.[1]
-				const platformType = "." + /\[.*\](?:\.pc_|\(.*\)\.pc_)(.*)/.exec(entry.path)?.[1]
-
-				for (const pathSection of path
-					.split("/")
-					.map((_, ind, arr) => arr.slice(0, ind + 1).join("/"))
-					.slice(0, -1)) {
-					if (!addedFolders.has(separatePartitions ? `${entry.partitions[0].id}-${pathSection}` : pathSection)) {
+			if (separatePartitions) {
+				for (const partition of entry.partitions) {
+					if (!addedPartitions.has(partition.id)) {
 						tree.settings!.core.data.push({
-							id: separatePartitions ? `${entry.partitions[0].id}-${pathSection}` : pathSection,
-							parent: pathSection.split("/").slice(0, -1).join("/")
-								? separatePartitions
-									? `${entry.partitions[0].id}-${pathSection.split("/").slice(0, -1).join("/")}`
-									: pathSection.split("/").slice(0, -1).join("/")
-								: separatePartitions
-									? `partition-${entry.partitions[0].id}`
-									: "#",
-							icon: "fa-regular fa-folder",
-							text: pathSection.split("/").at(-1),
+							id: `partition-${partition.id}`,
+							parent: "#",
+							icon: "fa-solid fa-box",
+							text: `${partition.name ?? "<unnamed>"} (${partition.id})`,
 							folder: true,
-							path: pathSection,
-							filetype: null
+							path: null,
+							filetype: null,
+							chunk: partition.id
 						})
-
-						addedFolders.add(separatePartitions ? `${entry.partitions[0].id}-${pathSection}` : pathSection)
+						addedPartitions.add(partition.id)
 					}
 				}
+			}
 
-				tree.settings!.core.data.push({
-					id: entry.hash,
-					parent: separatePartitions ? `${entry.partitions[0].id}-${path.split("/").slice(0, -1).join("/")}` : path.split("/").slice(0, -1).join("/"),
-					icon: getIconForResourceType(entry.filetype),
-					text: (
-						(params ? `[${path.split("/").at(-1)}](${params})` : path.split("/").at(-1)) +
-						((platformType === ".entitytype" &&
-							(path.endsWith(".class") ||
-								path.endsWith(".aspect") ||
-								path.endsWith(".brick") ||
-								path.endsWith(".entity") ||
-								path.endsWith(".entitytype") ||
-								path.endsWith(".entitytemplate"))) ||
-						platformType === ".wwisebank" ||
-						platformType === ".gfx" ||
-						platformType === ".wes" ||
-						path.endsWith(platformType)
-							? ""
-							: platformType)
-					).replace(/\.entityblueprint$/g, " (blueprint)"),
-					folder: false,
-					path: entry.path,
-					filetype: entry.filetype
-				})
-			} else {
-				tree.settings!.core.data.push({
-					id: entry.hash,
-					parent: separatePartitions ? `partition-${entry.partitions[0].id}` : "#",
-					icon: getIconForResourceType(entry.filetype),
-					text: entry.hint ? `${entry.hint} (${entry.hash}.${entry.filetype})` : `${entry.hash}.${entry.filetype}`,
-					folder: false,
-					path: null,
-					hint: entry.hint || null,
-					filetype: entry.filetype
-				})
+			for (const partition of entry.partitions) {
+				if (entry.path) {
+					const path = /\[(.*)\](?:\.pc_|\(.*\)\.pc_)/.exec(entry.path)![1]
+					const params = /\[.*\]\((.*)\)\.pc_/.exec(entry.path)?.[1]
+					const platformType = "." + /\[.*\](?:\.pc_|\(.*\)\.pc_)(.*)/.exec(entry.path)?.[1]
+
+					for (const pathSection of path
+						.split("/")
+						.map((_, ind, arr) => arr.slice(0, ind + 1).join("/"))
+						.slice(0, -1)) {
+						if (!addedFolders.has(separatePartitions ? `${partition.id}-${pathSection}` : pathSection)) {
+							tree.settings!.core.data.push({
+								id: separatePartitions ? `${partition.id}-${pathSection}` : pathSection,
+								parent: pathSection.split("/").slice(0, -1).join("/")
+									? separatePartitions
+										? `${partition.id}-${pathSection.split("/").slice(0, -1).join("/")}`
+										: pathSection.split("/").slice(0, -1).join("/")
+									: separatePartitions
+										? `partition-${partition.id}`
+										: "#",
+								icon: "fa-regular fa-folder",
+								text: pathSection.split("/").at(-1),
+								folder: true,
+								path: pathSection,
+								filetype: null
+							})
+
+							addedFolders.add(separatePartitions ? `${partition.id}-${pathSection}` : pathSection)
+						}
+					}
+
+					tree.settings!.core.data.push({
+						id: `${entry.hash}@${partition.id}`,
+						parent: separatePartitions ? `${partition.id}-${path.split("/").slice(0, -1).join("/")}` : path.split("/").slice(0, -1).join("/"),
+						icon: getIconForResourceType(entry.filetype),
+						text: (
+							(params ? `[${path.split("/").at(-1)}](${params})` : path.split("/").at(-1)) +
+							((platformType === ".entitytype" &&
+								(path.endsWith(".class") ||
+									path.endsWith(".aspect") ||
+									path.endsWith(".brick") ||
+									path.endsWith(".entity") ||
+									path.endsWith(".entitytype") ||
+									path.endsWith(".entitytemplate"))) ||
+							platformType === ".wwisebank" ||
+							platformType === ".gfx" ||
+							platformType === ".wes" ||
+							path.endsWith(platformType)
+								? ""
+								: platformType)
+						).replace(/\.entityblueprint$/g, " (blueprint)"),
+						folder: false,
+						path: entry.path,
+						filetype: entry.filetype
+					})
+				} else {
+					tree.settings!.core.data.push({
+						id: `${entry.hash}@${partition.id}`,
+						parent: separatePartitions ? `partition-${partition.id}` : "#",
+						icon: getIconForResourceType(entry.filetype),
+						text: entry.hint ? `${entry.hint} (${entry.hash}.${entry.filetype})` : `${entry.hash}.${entry.filetype}`,
+						folder: false,
+						path: null,
+						hint: entry.hint || null,
+						filetype: entry.filetype
+					})
+				}
+				if (!separatePartitions) {
+					break
+				}
 			}
 		}
 

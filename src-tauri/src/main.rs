@@ -408,13 +408,14 @@ fn event(app: AppHandle, event: Event) {
 								)?;
 							}
 
-							ContentSearchResultsEvent::OpenResourceOverview { hash, .. } => {
+							ContentSearchResultsEvent::OpenResourceOverview { hash, partition, .. } => {
 								let id = Uuid::new_v4();
 
 								app_state.editor_states.insert(
 									id.to_owned(),
 									EditorState {
 										file: None,
+										partition: Some(partition.to_owned()),
 										data: EditorData::ResourceOverview { hash }
 									}
 								);

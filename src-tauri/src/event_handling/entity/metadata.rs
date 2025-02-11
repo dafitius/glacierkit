@@ -157,6 +157,7 @@ pub async fn handle(app: &AppHandle, event: EntityMetadataEvent) -> Result<()> {
 
 				let EditorState {
 					data: EditorData::QNPatch { settings, current, .. },
+					partition: None, //TODO: Implement correct partition handling
 					file: None
 				} = state
 				else {
@@ -170,6 +171,7 @@ pub async fn handle(app: &AppHandle, event: EntityMetadataEvent) -> Result<()> {
 							settings,
 							entity: current
 						},
+						partition: None, //TODO: Implement correct partition handling
 						file: None
 					}
 				);
@@ -266,6 +268,7 @@ pub async fn handle(app: &AppHandle, event: EntityMetadataEvent) -> Result<()> {
 
 				let EditorState {
 					data: EditorData::QNPatch { settings, current, .. },
+					partition: None, //TODO: Implement correct partition handling
 					file: None
 				} = state
 				else {
@@ -279,6 +282,7 @@ pub async fn handle(app: &AppHandle, event: EntityMetadataEvent) -> Result<()> {
 							settings,
 							entity: current
 						},
+						partition: None, //TODO: Implement correct partition handling
 						file: None
 					}
 				);
