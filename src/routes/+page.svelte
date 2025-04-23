@@ -8,7 +8,7 @@
 	import GameBrowser from "$lib/tools/GameBrowser.svelte"
 	import ToolButton from "$lib/components/ToolButton.svelte"
 	import { Button, ToastNotification } from "carbon-components-svelte"
-	import { beforeUpdate, onDestroy } from "svelte"
+	import { beforeUpdate, onDestroy, onMount } from "svelte"
 	import { listen } from "@tauri-apps/api/event"
 	import type { Announcement, EditorType, Request } from "$lib/bindings-types"
 	import { Splitpanes, Pane } from "svelte-splitpanes"
@@ -31,6 +31,7 @@
 	import ContentSearchResultsEditor from "$lib/editors/contentsearchresults/ContentSearchResultsEditor.svelte"
 	import { open, confirm } from "@tauri-apps/plugin-dialog"
 	import { help } from "$lib/helpray"
+	import GeometryEditor from "$lib/editors/geometry/GeometryEditor.svelte"
 
 	const hints = [
 		"You can switch between tabs with Ctrl-PageUp and Ctrl-PageDown (or Ctrl-Tab and Ctrl-Shift-Tab).",
@@ -111,6 +112,9 @@
 			case "ResourceOverview":
 				return ResourceOverviewEditor
 
+			case "GeometryEditor":
+				return GeometryEditor
+
 			case "RepositoryPatch":
 				return RepositoryPatchEditor
 
@@ -143,6 +147,15 @@
 	})
 
 	let hasListened = false
+
+	onMount(async () => {
+		tabs.push({
+			editor: GeometryEditor, name: "geom", unsaved: false,
+			id: "9c19e38d-7784-4262-ab9f-7dd954920e4c"
+		});
+		activeTab = "9c19e38d-7784-4262-ab9f-7dd954920e4c"
+		console.log("THIS LOG MESSAGE!!");
+	})
 
 	beforeUpdate(async () => {
 		if (!hasListened) {

@@ -832,17 +832,17 @@ __metadata:
   linkType: hard
 
 "@threejs-kit/instanced-sprite-mesh@npm:^2.4.6":
-  version: 2.4.7
-  resolution: "@threejs-kit/instanced-sprite-mesh@npm:2.4.7"
+  version: 2.5.1
+  resolution: "@threejs-kit/instanced-sprite-mesh@npm:2.5.1"
   dependencies:
     diet-sprite: "npm:^0.0.1"
     earcut: "npm:^2.2.4"
     maath: "npm:^0.10.7"
-    three-instanced-uniforms-mesh: "npm:^0.49.0"
-    troika-three-utils: "npm:^0.49.0"
+    three-instanced-uniforms-mesh: "npm:^0.52.4"
+    troika-three-utils: "npm:^0.52.4"
   peerDependencies:
-    three: ">=0.151.0"
-  checksum: c5622d009c609ef4be731d6627296be232daef017b987f33c56b4a9fb5cfc5c55530a9e78c9dde1b6f9ae803aa1b63bb228ef526e59c0f65bd0a0ad3fa5a46bc
+    three: ">=0.170.0"
+  checksum: ad62d798bd47be650ae0338dce37f9d48ca9295bf8d00bbe69fad924da4ba093deb8bc87ecbe0b1270d4b1d7b30577e14ee619b4740205afb2ea1b3745df770b
   languageName: node
   linkType: hard
 
@@ -858,9 +858,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@threlte/extras@npm:^8.11.5":
-  version: 8.11.5
-  resolution: "@threlte/extras@npm:8.11.5"
+"@threlte/extras@npm:^8.12.2":
+  version: 8.12.2
+  resolution: "@threlte/extras@npm:8.12.2"
   dependencies:
     "@threejs-kit/instanced-sprite-mesh": "npm:^2.4.6"
     three-mesh-bvh: "npm:^0.7.1"
@@ -869,7 +869,7 @@ __metadata:
   peerDependencies:
     svelte: ">=4"
     three: ">=0.152"
-  checksum: b0c2e8a0ef80697d8cbb7dda0695c5bc109c705ac87423d972f53cee57b7de0ada0bdf514742d7efd90328e025961f64d536e2b54808d9c82877ae24ba75fafc
+  checksum: 74715568b50f5f213f3db3ead798e65d72bc460973b46b7e0cd4e5505b3ba704c135a5ff7132d824f54bc276bec7c6e2a59c804042c415dd3aaf535ec494b1e2
   languageName: node
   linkType: hard
 
@@ -2897,7 +2897,7 @@ __metadata:
     "@tauri-apps/plugin-shell": "npm:~2"
     "@tauri-apps/plugin-updater": "npm:~2"
     "@threlte/core": "npm:^7.3.1"
-    "@threlte/extras": "npm:^8.11.5"
+    "@threlte/extras": "npm:^8.12.2"
     "@types/eslint": "npm:8.56.0"
     "@types/jquery": "npm:^3"
     "@types/jstree": "npm:^3"
@@ -4015,14 +4015,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"three-instanced-uniforms-mesh@npm:^0.49.0":
-  version: 0.49.1
-  resolution: "three-instanced-uniforms-mesh@npm:0.49.1"
+"three-instanced-uniforms-mesh@npm:^0.52.4":
+  version: 0.52.4
+  resolution: "three-instanced-uniforms-mesh@npm:0.52.4"
   dependencies:
-    troika-three-utils: "npm:^0.49.0"
+    troika-three-utils: "npm:^0.52.4"
   peerDependencies:
     three: ">=0.125.0"
-  checksum: 8fd93ea89cc32a0a80c19cdbdf6919772b1fb359625b4fa0ebcbfb7640e76f706bedab5c927eeb408bd5ed2f070b20c9063fb77a844c1f527e3781866c06faef
+  checksum: eefd5d62067e8c764ba63b4623d0bd23e76f2ade9b8818c39fba7c9d95df4c4149dde0cde9c9a92a459d45adc4f17ac07698288c555ebf52bbded6a944a73d09
   languageName: node
   linkType: hard
 
@@ -4123,6 +4123,15 @@ __metadata:
   peerDependencies:
     three: ">=0.125.0"
   checksum: 6cf14e6e49424e587538972810241d0acf4b005e5d9bbb3d5555bcb2b8b406c3fb0752ada68b455a18a6c29b42b6aa10c6cb333346343bffc73b5e198d5cb9f7
+  languageName: node
+  linkType: hard
+
+"troika-three-utils@npm:^0.52.4":
+  version: 0.52.4
+  resolution: "troika-three-utils@npm:0.52.4"
+  peerDependencies:
+    three: ">=0.125.0"
+  checksum: 06de01ed332b755e5a1f376ea047f5e3585c71c98e2216822011fcf25e107fa9e28cbdd6586d3507eec45973998de80db0a2f07efba550b62623ceb58c955c98
   languageName: node
   linkType: hard
 
