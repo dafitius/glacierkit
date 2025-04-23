@@ -6,7 +6,7 @@ use hashbrown::HashMap;
 use hitman_commons::{
 	game_detection::GameInstall,
 	hash_list::HashList,
-	metadata::{ResourceType, RuntimeID}
+	metadata::{ResourceType, RuntimeID},
 };
 use notify::RecommendedWatcher;
 use notify_debouncer_full::FileIdMap;
@@ -22,284 +22,330 @@ use crate::{
 	editor_connection::{EditorConnection, QNTransform},
 	entity::{CopiedEntityData, ReverseReference},
 	intellisense::Intellisense,
-	ores_repo::{RepositoryItem, RepositoryItemInformation, UnlockableInformation, UnlockableItem}
+	ores_repo::{RepositoryItem, RepositoryItemInformation, UnlockableInformation, UnlockableItem},
 };
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AppSettings {
-	pub extract_modded_files: bool,
-	pub game_install: Option<PathBuf>,
-	pub colourblind_mode: bool,
-	pub editor_connection: bool,
-	pub seen_announcements: Vec<String>
+    pub extract_modded_files: bool,
+    pub game_install: Option<PathBuf>,
+    pub colourblind_mode: bool,
+    pub editor_connection: bool,
+    pub seen_announcements: Vec<String>,
 }
 
 impl Default for AppSettings {
-	fn default() -> Self {
-		Self {
-			extract_modded_files: false,
-			game_install: None,
-			colourblind_mode: false,
-			editor_connection: true,
-			seen_announcements: vec![]
+    fn default() -> Self {
+        Self {
+            extract_modded_files: false,
+            game_install: None,
+            colourblind_mode: false,
+            editor_connection: true,
+            seen_announcements: vec![],
 		}
-	}
+    }
 }
 
 pub struct AppState {
-	pub game_installs: Vec<GameInstall>,
-	pub project: ArcSwapOption<Project>,
-	pub hash_list: ArcSwapOption<HashList>,
-	pub tonytools_hash_list: ArcSwapOption<tonytools::hashlist::HashList>,
-	pub fs_watcher: ArcSwapOption<notify_debouncer_full::Debouncer<RecommendedWatcher, FileIdMap>>,
-	pub editor_states: Arc<DashMap<Uuid, EditorState>>,
-	pub game_files: ArcSwapOption<PartitionManager>,
+    pub game_installs: Vec<GameInstall>,
+    pub project: ArcSwapOption<Project>,
+    pub hash_list: ArcSwapOption<HashList>,
+    pub tonytools_hash_list: ArcSwapOption<tonytools::hashlist::HashList>,
+    pub fs_watcher: ArcSwapOption<notify_debouncer_full::Debouncer<RecommendedWatcher, FileIdMap>>,
+    pub editor_states: Arc<DashMap<Uuid, EditorState>>,
+    pub game_files: ArcSwapOption<PartitionManager>,
 
-	/// Resource -> Resources which depend on it
-	pub resource_reverse_dependencies: ArcSwapOption<HashMap<RuntimeID, Vec<RuntimeID>>>,
+    /// Resource -> Resources which depend on it
+    pub resource_reverse_dependencies: ArcSwapOption<HashMap<RuntimeID, Vec<RuntimeID>>>,
 
-	pub cached_entities: Arc<DashMap<RuntimeID, Entity>>,
-	pub repository: ArcSwapOption<Vec<RepositoryItem>>,
-	pub intellisense: ArcSwapOption<Intellisense>,
+    pub cached_entities: Arc<DashMap<RuntimeID, Entity>>,
+    pub repository: ArcSwapOption<Vec<RepositoryItem>>,
+    pub intellisense: ArcSwapOption<Intellisense>,
 
-	pub editor_connection: EditorConnection
+    pub editor_connection: EditorConnection,
 }
 
 #[derive(Debug)]
 pub struct EditorState {
-	pub file: Option<PathBuf>,
-	pub data: EditorData
+    pub file: Option<PathBuf>,
+    pub data: EditorData,
 }
 
 #[derive(Debug, Clone)]
 pub enum EditorData {
-	Nil,
-	ResourceOverview {
-		hash: RuntimeID
+    Nil,
+    ResourceOverview {
+        hash: RuntimeID
+    },
+    Text {
+        content: String,
+        file_type: TextFileType,
 	},
-	Text {
-		content: String,
-		file_type: TextFileType
+    QNEntity {
+        settings: EphemeralQNSettings,
+        entity: Box<Entity>,
 	},
-	QNEntity {
-		settings: EphemeralQNSettings,
-		entity: Box<Entity>
+    QNPatch {
+        settings: EphemeralQNSettings,
+        base: Box<Entity>,
+        current: Box<Entity>,
 	},
-	QNPatch {
-		settings: EphemeralQNSettings,
-		base: Box<Entity>,
-		current: Box<Entity>
+    RepositoryPatch {
+        base: Vec<RepositoryItem>,
+        current: Vec<RepositoryItem>,
+        patch_type: JsonPatchType,
 	},
-	RepositoryPatch {
-		base: Vec<RepositoryItem>,
-		current: Vec<RepositoryItem>,
-		patch_type: JsonPatchType
+    UnlockablesPatch {
+        base: Vec<UnlockableItem>,
+        current: Vec<UnlockableItem>,
+        patch_type: JsonPatchType,
 	},
-	UnlockablesPatch {
-		base: Vec<UnlockableItem>,
-		current: Vec<UnlockableItem>,
-		patch_type: JsonPatchType
-	},
-	ContentSearchResults {
-		results: Vec<(String, String, Option<String>)>
-	}
+    ContentSearchResults {
+        results: Vec<(String, String, Option<String>)>
+    },
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct EphemeralQNSettings {
-	pub show_reverse_parent_refs: bool,
-	pub show_changes_from_original: bool
+    pub show_reverse_parent_refs: bool,
+    pub show_changes_from_original: bool,
 }
 
 impl Default for EphemeralQNSettings {
-	fn default() -> Self {
-		Self {
-			show_reverse_parent_refs: false,
-			show_changes_from_original: false
+    fn default() -> Self {
+        Self {
+            show_reverse_parent_refs: false,
+            show_changes_from_original: false,
 		}
-	}
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Project {
-	pub path: PathBuf,
-	pub settings: ArcSwap<ProjectSettings>
+    pub path: PathBuf,
+    pub settings: ArcSwap<ProjectSettings>,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectSettings {
-	pub custom_paths: Vec<String>
+    pub custom_paths: Vec<String>,
 }
 
 impl Default for ProjectSettings {
-	fn default() -> Self {
-		Self { custom_paths: vec![] }
-	}
+    fn default() -> Self {
+        Self { custom_paths: vec![] }
+    }
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct GameBrowserEntry {
-	pub hash: RuntimeID,
-	pub path: Option<String>,
-	pub hint: Option<String>,
-	pub filetype: ResourceType,
-	pub partition: (String, String)
+    pub hash: RuntimeID,
+    pub path: Option<String>,
+    pub hint: Option<String>,
+    pub filetype: ResourceType,
+    pub partition: (String, String),
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 pub enum TextFileType {
-	Json,
-	ManifestJson,
-	PlainText,
-	Markdown
+    Json,
+    ManifestJson,
+    PlainText,
+    Markdown,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type", content = "data")]
 pub enum EditorType {
-	Nil,
-	ResourceOverview,
-	Text { file_type: TextFileType },
-	QNEntity,
-	QNPatch,
-	RepositoryPatch { patch_type: JsonPatchType },
-	UnlockablesPatch { patch_type: JsonPatchType },
-	ContentSearchResults
+    Nil,
+    ResourceOverview,
+    GeometryEditor,
+    Text { file_type: TextFileType },
+    QNEntity,
+    QNPatch,
+    RepositoryPatch { patch_type: JsonPatchType },
+    UnlockablesPatch { patch_type: JsonPatchType },
+    ContentSearchResults,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 pub enum JsonPatchType {
-	MergePatch,
-	JsonPatch
+    MergePatch,
+    JsonPatch,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type", content = "data")]
 pub enum EditorValidity {
-	Valid,
-	Invalid(String)
+    Valid,
+    Invalid(String),
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PastableTemplate {
-	pub name: String,
-	pub icon: String,
-	pub paste_data: CopiedEntityData
+    pub name: String,
+    pub icon: String,
+    pub paste_data: CopiedEntityData,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PastableTemplateCategory {
-	pub name: String,
-	pub icon: String,
-	pub templates: Vec<PastableTemplate>
+    pub name: String,
+    pub icon: String,
+    pub templates: Vec<PastableTemplate>,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, derive_more::Debug)]
 #[serde(tag = "type", content = "data")]
 pub enum ResourceOverviewData {
-	Generic,
-	Entity {
-		blueprint_hash: String,
-		blueprint_path_or_hint: Option<String>
+    Generic,
+    Entity {
+        blueprint_hash: String,
+        blueprint_path_or_hint: Option<String>,
 	},
-	GenericRL {
-		json: String
+    GenericRL {
+        json: String
+    },
+    Json {
+        json: String
+    },
+    Ores {
+        json: String
+    },
+    Image {
+        image_path: PathBuf,
+        dds_data: Option<(String, String)>,
 	},
-	Json {
-		json: String
+    Audio {
+        wav_path: PathBuf
+    },
+    Mesh {
+        #[debug(skip)]
+        obj: String,
+        bounding_box: [f32; 6],
 	},
-	Ores {
-		json: String
+    MultiAudio {
+        name: String,
+        wav_paths: Vec<(String, PathBuf)>,
 	},
-	Image {
-		image_path: PathBuf,
-		dds_data: Option<(String, String)>
-	},
-	Audio {
-		wav_path: PathBuf
-	},
-	Mesh {
-		#[debug(skip)]
-		obj: String,
-		bounding_box: [f32; 6]
-	},
-	MultiAudio {
-		name: String,
-		wav_paths: Vec<(String, PathBuf)>
-	},
-	Repository,
-	Unlockables,
-	HMLanguages {
-		json: String
-	},
-	LocalisedLine {
-		languages: Vec<(String, String)>
-	},
-	MaterialInstance {
-		json: String
-	},
-	MaterialEntity {
-		json: String
-	}
+    Repository,
+    Unlockables,
+    HMLanguages {
+        json: String
+    },
+    LocalisedLine {
+        languages: Vec<(String, String)>
+    },
+    MaterialInstance {
+        json: String
+    },
+    MaterialEntity {
+        json: String
+    },
+}
+
+#[derive(Type, Serialize, Deserialize, Clone, derive_more::Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GeometryEditorData {
+    pub vertices: Vec<()>,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ResourceChangelogEntry {
-	pub operation: ResourceChangelogOperation,
-	pub partition: String,
-	pub patch: String,
-	pub description: String
+    pub operation: ResourceChangelogOperation,
+    pub partition: String,
+    pub patch: String,
+    pub description: String,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum ResourceChangelogOperation {
-	Delete,
-	Init,
-	Edit
+    Delete,
+    Init,
+    Edit,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 pub enum SearchFilter {
-	All,
-	Templates,
-	Classes,
-	Models,
-	Textures,
-	Sound
+    All,
+    Templates,
+    Classes,
+    Models,
+    Textures,
+    Sound,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Dynamics {
-	pub announcements: Vec<Announcement>
+    pub announcements: Vec<Announcement>,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Announcement {
-	pub id: String,
-	pub kind: AnnouncementKind,
-	pub title: String,
-	pub description: String,
-	pub persistent: bool,
-	pub until: Option<u32>
+    pub id: String,
+    pub kind: AnnouncementKind,
+    pub title: String,
+    pub description: String,
+    pub persistent: bool,
+    pub until: Option<u32>,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum AnnouncementKind {
-	Info,
-	Success,
-	Warning,
-	Error
+    Info,
+    Success,
+    Warning,
+    Error,
+}
+
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum GeometryEditorEntryKind {
+    Mesh,
+    Weighted,
+    Linked,
+}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GeometryEditorEntryMaterial {}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GeometryEditorEntryMesh {
+	lod_mask: u8,
+	material: Option<GeometryEditorData>,
+}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GeometryEditorEntryCollider {}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GeometryEditorEntryRig {}
+
+#[derive(Type, Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GeometryEditorEntry {
+	name: String,
+	kind: GeometryEditorEntryKind,
+	position: [f32; 3],
+	meshes: Vec<GeometryEditorEntryMesh>,
+	colliders: Vec<GeometryEditorEntryCollider>,
+	rig: Option<GeometryEditorEntryRig>,
 }
 
 strike! {
@@ -852,7 +898,7 @@ strike! {
 					},
 
 					/// Instructs the frontend to take the list of new entities, add any new ones and update any ones that already exist (by ID) with the new information.
-					/// This is used for pasting, and for ensuring that icons/parent status/name are updated when a sub-entity is updated.
+                    /// This is used for pasting, and for ensuring that icons/parent status/name are updated when a sub-entity is updated.
 					NewItems {
 						editor_id: Uuid,
 
@@ -1113,6 +1159,16 @@ strike! {
 					/// Hash, type, path/hint
 					#[debug(skip)]
 					results: Vec<(String, String, Option<String>)>
+				}
+			}),
+			Geometry(pub enum GeometryEditorRequest {
+				Initialise {
+					id: Uuid,
+					hash: String,
+					filetype: String,
+					chunk_patch: String,
+
+					data: ResourceOverviewData
 				}
 			})
 		}),

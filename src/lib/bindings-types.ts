@@ -65,9 +65,9 @@ export type EditorConnectionEvent = { type: "entitySelected"; data: [string, str
 
 export type EditorEvent = { type: "text"; data: TextEditorEvent } | { type: "entity"; data: EntityEditorEvent } | { type: "resourceOverview"; data: ResourceOverviewEvent } | { type: "repositoryPatch"; data: RepositoryPatchEditorEvent } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorEvent } | { type: "contentSearchResults"; data: ContentSearchResultsEvent }
 
-export type EditorRequest = { type: "text"; data: TextEditorRequest } | { type: "entity"; data: EntityEditorRequest } | { type: "resourceOverview"; data: ResourceOverviewRequest } | { type: "repositoryPatch"; data: RepositoryPatchEditorRequest } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorRequest } | { type: "contentSearchResults"; data: ContentSearchResultsRequest }
+export type EditorRequest = { type: "text"; data: TextEditorRequest } | { type: "entity"; data: EntityEditorRequest } | { type: "resourceOverview"; data: ResourceOverviewRequest } | { type: "repositoryPatch"; data: RepositoryPatchEditorRequest } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorRequest } | { type: "contentSearchResults"; data: ContentSearchResultsRequest } | { type: "geometry"; data: GeometryEditorRequest }
 
-export type EditorType = { type: "Nil" } | { type: "ResourceOverview" } | { type: "Text"; data: { file_type: TextFileType } } | { type: "QNEntity" } | { type: "QNPatch" } | { type: "RepositoryPatch"; data: { patch_type: JsonPatchType } } | { type: "UnlockablesPatch"; data: { patch_type: JsonPatchType } } | { type: "ContentSearchResults" }
+export type EditorType = { type: "Nil" } | { type: "ResourceOverview" } | { type: "GeometryEditor" } | { type: "Text"; data: { file_type: TextFileType } } | { type: "QNEntity" } | { type: "QNPatch" } | { type: "RepositoryPatch"; data: { patch_type: JsonPatchType } } | { type: "UnlockablesPatch"; data: { patch_type: JsonPatchType } } | { type: "ContentSearchResults" }
 
 export type EditorValidity = { type: "Valid" } | { type: "Invalid"; data: string }
 
@@ -242,6 +242,22 @@ export type GameInstall = { version: GameVersion; platform: GamePlatform; path: 
 export type GamePlatform = "steam" | "epic" | "gog" | "microsoft"
 
 export type GameVersion = "h1" | "h2" | "h3"
+
+export type GeometryEditorData = { vertices: null[] }
+
+export type GeometryEditorEntry = { name: string; kind: GeometryEditorEntryKind; position: [number, number, number]; meshes: GeometryEditorEntryMesh[]; colliders: GeometryEditorEntryCollider[]; rig: GeometryEditorEntryRig | null }
+
+export type GeometryEditorEntryCollider = Record<string, never>
+
+export type GeometryEditorEntryKind = "mesh" | "weighted" | "linked"
+
+export type GeometryEditorEntryMaterial = Record<string, never>
+
+export type GeometryEditorEntryMesh = { lodMask: number; material: GeometryEditorData | null }
+
+export type GeometryEditorEntryRig = Record<string, never>
+
+export type GeometryEditorRequest = { type: "initialise"; data: { id: string; hash: string; filetype: string; chunk_patch: string; data: ResourceOverviewData } }
 
 export type GlobalEvent = { type: "setSeenAnnouncements"; data: string[] } | { type: "loadWorkspace"; data: string } | { type: "selectAndOpenFile" } | { type: "selectTab"; data: string | null } | { type: "removeTab"; data: string } | { type: "saveTab"; data: string } | { type: "uploadLogAndReport"; data: string } | { type: "uploadLastPanic" } | { type: "clearLastPanic" }
 
