@@ -25,8 +25,7 @@ use velcro::vec;
 
 use crate::ores_repo::UnlockableItem;
 use crate::resourcelib::{
-	h2016_convert_binary_to_blueprint, h2016_convert_binary_to_factory, h2_convert_binary_to_blueprint,
-	h2_convert_binary_to_factory, h3_convert_binary_to_blueprint, h3_convert_binary_to_factory
+	convert_binary_to_blueprint, convert_binary_to_factory
 };
 use crate::rpkg::extract_latest_resource;
 use crate::{
@@ -332,17 +331,8 @@ pub async fn handle_tool_event(app: &AppHandle, event: ToolEvent) -> Result<()> 
 					let (temp_meta, temp_data) =
 						extract_latest_resource(game_files, RuntimeID::from_any(&entity.factory_hash)?)?;
 
-					let factory = match game_version {
-						GameVersion::H1 => h2016_convert_binary_to_factory(&temp_data)
-							.context("Couldn't convert binary data to ResourceLib factory")?
-							.into_modern(),
-
-						GameVersion::H2 => h2_convert_binary_to_factory(&temp_data)
-							.context("Couldn't convert binary data to ResourceLib factory")?,
-
-						GameVersion::H3 => h3_convert_binary_to_factory(&temp_data)
-							.context("Couldn't convert binary data to ResourceLib factory")?
-					};
+					let factory = convert_binary_to_factory(game_version, &temp_data)
+						.context("Couldn't convert binary data to ResourceLib factory")?;
 
 					let blueprint_hash = temp_meta
 						.core_info
@@ -354,17 +344,8 @@ pub async fn handle_tool_event(app: &AppHandle, event: ToolEvent) -> Result<()> 
 
 					let (tblu_meta, tblu_data) = extract_latest_resource(game_files, blueprint_hash)?;
 
-					let blueprint = match game_version {
-						GameVersion::H1 => h2016_convert_binary_to_blueprint(&tblu_data)
-							.context("Couldn't convert binary data to ResourceLib blueprint")?
-							.into_modern(),
-
-						GameVersion::H2 => h2_convert_binary_to_blueprint(&tblu_data)
-							.context("Couldn't convert binary data to ResourceLib blueprint")?,
-
-						GameVersion::H3 => h3_convert_binary_to_blueprint(&tblu_data)
-							.context("Couldn't convert binary data to ResourceLib blueprint")?
-					};
+					let blueprint = convert_binary_to_blueprint(game_version, &tblu_data)
+						.context("Couldn't convert binary data to ResourceLib blueprint")?;
 
 					let base = convert_to_qn(
 						&factory,

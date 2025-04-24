@@ -8,6 +8,7 @@ use hitman_commons::{
 };
 use itertools::Itertools;
 use quickentity_rs::{convert_to_qn, qn_structs::Entity};
+use resourcelib_ffi::ResourceConverter;
 use rpkg_rs::resource::{
 	partition_manager::PartitionManager, resource_info::ResourceInfo, resource_package::ResourceReferenceFlags,
 	resource_partition::PatchId, runtime_resource_id::RuntimeResourceID
@@ -16,11 +17,8 @@ use tryvial::try_fn;
 
 use crate::{
 	model::{ResourceChangelogEntry, ResourceChangelogOperation},
-	resourcelib::{
-		h2016_convert_binary_to_blueprint, h2016_convert_binary_to_factory, h2_convert_binary_to_blueprint,
-		h2_convert_binary_to_factory, h3_convert_binary_to_blueprint, h3_convert_binary_to_factory
-	}
 };
+use crate::resourcelib::{convert_binary_to_blueprint, convert_binary_to_factory};
 
 /// Extract the latest copy of a resource.
 pub fn extract_latest_resource(
@@ -144,18 +142,9 @@ pub fn extract_entity<'a>(
 		if temp_meta.core_info.resource_type != "TEMP" {
 			bail!("Given factory was not a TEMP");
 		}
-
-		let factory = match game_version {
-			GameVersion::H1 => h2016_convert_binary_to_factory(&temp_data)
-				.context("Couldn't convert binary data to ResourceLib factory")?
-				.into_modern(),
-
-			GameVersion::H2 => h2_convert_binary_to_factory(&temp_data)
-				.context("Couldn't convert binary data to ResourceLib factory")?,
-
-			GameVersion::H3 => h3_convert_binary_to_factory(&temp_data)
-				.context("Couldn't convert binary data to ResourceLib factory")?
-		};
+		
+		let factory = convert_binary_to_factory(game_version, &temp_data)
+			.context("Couldn't convert binary data to ResourceLib factory")?;
 
 		let blueprint_id = &temp_meta
 			.core_info
@@ -167,17 +156,7 @@ pub fn extract_entity<'a>(
 		let (tblu_meta, tblu_data) =
 			extract_latest_resource(resource_packages, blueprint_id.get_id()).context("Couldn't extract TBLU")?;
 
-		let blueprint = match game_version {
-			GameVersion::H1 => h2016_convert_binary_to_blueprint(&tblu_data)
-				.context("Couldn't convert binary data to ResourceLib blueprint")?
-				.into_modern(),
-
-			GameVersion::H2 => h2_convert_binary_to_blueprint(&tblu_data)
-				.context("Couldn't convert binary data to ResourceLib blueprint")?,
-
-			GameVersion::H3 => h3_convert_binary_to_blueprint(&tblu_data)
-				.context("Couldn't convert binary data to ResourceLib blueprint")?
-		};
+		let blueprint = convert_binary_to_blueprint(game_version, &tblu_data).context("Couldn't convert binary data to ResourceLib blueprint")?;
 
 		let entity = convert_to_qn(
 			&factory,

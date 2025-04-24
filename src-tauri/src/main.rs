@@ -16,9 +16,9 @@ pub mod intellisense;
 pub mod languages;
 pub mod model;
 pub mod ores_repo;
-pub mod resourcelib;
 pub mod rpkg;
 pub mod show_in_folder;
+mod resourcelib;
 
 use std::{
 	backtrace::{Backtrace, BacktraceStatus},

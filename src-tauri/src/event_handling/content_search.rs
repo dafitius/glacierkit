@@ -23,9 +23,7 @@ use crate::{
 	languages::get_language_map,
 	model::{AppSettings, AppState, EditorData, EditorState, EditorType, GlobalRequest, Request},
 	resourcelib::{
-		convert_generic_str, h2016_convert_binary_to_blueprint, h2016_convert_binary_to_factory,
-		h2_convert_binary_to_blueprint, h2_convert_binary_to_factory, h3_convert_binary_to_blueprint,
-		h3_convert_binary_to_factory
+		convert_generic_str, convert_binary_to_blueprint, convert_binary_to_factory
 	},
 	rpkg::extract_latest_resource,
 	send_request, start_task
@@ -95,15 +93,7 @@ pub fn start_content_search(
 												RpkgResourceMeta::from(*resource_info)
 											);
 
-											let factory = match game_version {
-												GameVersion::H1 => {
-													h2016_convert_binary_to_factory(&temp_data).ok()?.into_modern()
-												}
-
-												GameVersion::H2 => h2_convert_binary_to_factory(&temp_data).ok()?,
-
-												GameVersion::H3 => h3_convert_binary_to_factory(&temp_data).ok()?
-											};
+											let factory = convert_binary_to_factory(game_version, &temp_data).ok()?;
 
 											let blueprint_hash = &temp_meta
 												.hash_reference_data
@@ -117,15 +107,7 @@ pub fn start_content_search(
 												RpkgResourceMeta::from(partition.get_resource_info(&tblu_rrid).ok()?)
 											);
 
-											let blueprint = match game_version {
-												GameVersion::H1 => {
-													h2016_convert_binary_to_blueprint(&tblu_data).ok()?.into_modern()
-												}
-
-												GameVersion::H2 => h2_convert_binary_to_blueprint(&tblu_data).ok()?,
-
-												GameVersion::H3 => h3_convert_binary_to_blueprint(&tblu_data).ok()?
-											};
+											let blueprint = convert_binary_to_blueprint(game_version, &tblu_data).ok()?;
 
 											let entity =
 												convert_to_qn(&factory, &temp_meta, &blueprint, &tblu_meta, false)
@@ -135,15 +117,7 @@ pub fn start_content_search(
 										} else {
 											let temp_data = partition.read_resource(resource_id).ok()?;
 
-											let factory = match game_version {
-												GameVersion::H1 => {
-													h2016_convert_binary_to_factory(&temp_data).ok()?.into_modern()
-												}
-
-												GameVersion::H2 => h2_convert_binary_to_factory(&temp_data).ok()?,
-
-												GameVersion::H3 => h3_convert_binary_to_factory(&temp_data).ok()?
-											};
+											let factory = convert_binary_to_factory(game_version, &temp_data).ok()?;
 
 											let (tblu_rrid, _) = &resource_info
 												.references()
@@ -151,16 +125,8 @@ pub fn start_content_search(
 
 											let tblu_data = partition.read_resource(tblu_rrid).ok()?;
 
-											let blueprint = match game_version {
-												GameVersion::H1 => {
-													h2016_convert_binary_to_blueprint(&tblu_data).ok()?.into_modern()
-												}
-
-												GameVersion::H2 => h2_convert_binary_to_blueprint(&tblu_data).ok()?,
-
-												GameVersion::H3 => h3_convert_binary_to_blueprint(&tblu_data).ok()?
-											};
-
+											let blueprint = convert_binary_to_blueprint(game_version, &tblu_data).ok()?;
+											
 											let mut s = to_vec(&factory).ok()?;
 											s.append(&mut to_vec(&blueprint).ok()?);
 

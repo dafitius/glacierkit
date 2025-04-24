@@ -1,5 +1,11 @@
 use std::{env, path::PathBuf};
 
+macro_rules! warn {
+    ($($tokens: tt)*) => {
+        println!("cargo:warning={}", format!($($tokens)*))
+    }
+}
+
 fn main() {
 	let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
 
@@ -15,16 +21,10 @@ fn main() {
 	// Linux-specific linking
 	#[cfg(target_os = "linux")]
 	{
-		let resourcelib_dir = manifest_dir.join("ResourceLib/ResourceLib-linux-x64");
-
-		println!("cargo:rustc-link-search={}", resourcelib_dir.display());
-		println!("cargo:rustc-link-arg=-Wl,-rpath={}", resourcelib_dir.display());
-
-		println!("cargo:rustc-link-lib=dylib:+verbatim=ResourceLib_HM2016.so");
-		println!("cargo:rustc-link-lib=dylib:+verbatim=ResourceLib_HM2.so");
-		println!("cargo:rustc-link-lib=dylib:+verbatim=ResourceLib_HM3.so");
-
-		println!("cargo:include={}", resourcelib_dir.join("include").display());
+		let rlib_lib_path = PathBuf::from(env::var("DEP_RESOURCELIB_LIB_PATH").expect("ResourceLib Library Path"));
+		warn!("Found rlibs {}", rlib_lib_path.display());
+		println!("cargo:rustc-link-search={}", rlib_lib_path.display());
+		println!("cargo:rustc-link-arg=-Wl,-rpath={}", rlib_lib_path.display());
 	}
 
 	let static_folder = manifest_dir.join("../static");

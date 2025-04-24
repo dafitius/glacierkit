@@ -43,13 +43,12 @@ use crate::{
 		ResourceOverviewData, ResourceOverviewEvent, ResourceOverviewRequest
 	},
 	resourcelib::{
-		convert_generic, h2016_convert_binary_to_blueprint, h2016_convert_binary_to_factory,
-		h2_convert_binary_to_blueprint, h2_convert_binary_to_factory, h3_convert_binary_to_blueprint,
-		h3_convert_binary_to_factory
+		convert_generic, convert_binary_to_factory
 	},
 	rpkg::{extract_entity, extract_latest_overview_info, extract_latest_resource, extract_resource_changelog},
 	send_notification, send_request, start_task, Notification, NotificationKind, RunCommandExt
 };
+use crate::resourcelib::convert_binary_to_blueprint;
 
 #[try_fn]
 #[context("Couldn't initialise resource overview {id}")]
@@ -1060,22 +1059,8 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 				let (metadata, data) = extract_latest_resource(game_files, hash)?;
 				let metadata_file = RpkgResourceMeta::from_resource_metadata(metadata, false);
 
-				let data = match get_loaded_game_version(app, install)? {
-					GameVersion::H1 => to_vec(
-						&h2016_convert_binary_to_factory(&data)
-							.context("Couldn't convert binary data to ResourceLib factory")?
-					)?,
-
-					GameVersion::H2 => to_vec(
-						&h2_convert_binary_to_factory(&data)
-							.context("Couldn't convert binary data to ResourceLib factory")?
-					)?,
-
-					GameVersion::H3 => to_vec(
-						&h3_convert_binary_to_factory(&data)
-							.context("Couldn't convert binary data to ResourceLib factory")?
-					)?
-				};
+				let game_version = get_loaded_game_version(app, install)?;
+				let data = to_vec(&convert_binary_to_factory(game_version, &data).context("Couldn't convert binary data to ResourceLib factory")?)?;
 
 				let mut dialog = FileDialogBuilder::new().set_title("Extract file");
 
@@ -1190,23 +1175,7 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 				)?;
 
 				let metadata_file = RpkgResourceMeta::from_resource_metadata(metadata.to_owned(), false);
-
-				let data = match game_version {
-					GameVersion::H1 => to_vec(
-						&h2016_convert_binary_to_blueprint(&data)
-							.context("Couldn't convert binary data to ResourceLib blueprint")?
-					)?,
-
-					GameVersion::H2 => to_vec(
-						&h2_convert_binary_to_blueprint(&data)
-							.context("Couldn't convert binary data to ResourceLib blueprint")?
-					)?,
-
-					GameVersion::H3 => to_vec(
-						&h3_convert_binary_to_blueprint(&data)
-							.context("Couldn't convert binary data to ResourceLib blueprint")?
-					)?
-				};
+				let data = to_vec(&convert_binary_to_blueprint(game_version, &data).context("Couldn't convert binary data to ResourceLib blueprint")?)?;
 
 				let mut dialog = FileDialogBuilder::new().set_title("Extract file");
 

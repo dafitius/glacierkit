@@ -38,13 +38,11 @@ use crate::{
 		EntityMetaPaneRequest, EntityMonacoRequest, EntityTreeEvent, EntityTreeRequest, GlobalRequest, Request
 	},
 	resourcelib::{
-		h2016_convert_binary_to_factory, h2016_convert_cppt, h2_convert_binary_to_factory, h2_convert_cppt,
-		h3_convert_binary_to_factory, h3_convert_cppt
+		convert_binary_to_factory, convert_cppt
 	},
 	rpkg::{extract_entity, extract_latest_metadata, extract_latest_resource},
 	send_notification, send_request, start_task, Notification, NotificationKind
 };
-
 use super::monaco::SAFE_TO_SYNC;
 
 #[try_fn]
@@ -1817,18 +1815,8 @@ pub async fn add_game_browser_item(app: &AppHandle, editor_id: Uuid, parent_id: 
 				"TEMP" => {
 					let (temp_meta, temp_data) = extract_latest_resource(game_files, file)?;
 
-					let factory = match game_version {
-						GameVersion::H1 => h2016_convert_binary_to_factory(&temp_data)
-							.context("Couldn't convert binary data to ResourceLib factory")?
-							.into_modern(),
-
-						GameVersion::H2 => h2_convert_binary_to_factory(&temp_data)
-							.context("Couldn't convert binary data to ResourceLib factory")?,
-
-						GameVersion::H3 => h3_convert_binary_to_factory(&temp_data)
-							.context("Couldn't convert binary data to ResourceLib factory")?
-					};
-
+					let factory = convert_binary_to_factory(game_version, &temp_data).context("Couldn't convert binary data to ResourceLib factory")?;
+					
 					let blueprint_hash = &temp_meta
 						.core_info
 						.references
@@ -1871,17 +1859,7 @@ pub async fn add_game_browser_item(app: &AppHandle, editor_id: Uuid, parent_id: 
 				"CPPT" => {
 					let (cppt_meta, cppt_data) = extract_latest_resource(game_files, file)?;
 
-					let factory =
-						match game_version {
-							GameVersion::H1 => h2016_convert_cppt(&cppt_data)
-								.context("Couldn't convert binary data to ResourceLib format")?,
-
-							GameVersion::H2 => h2_convert_cppt(&cppt_data)
-								.context("Couldn't convert binary data to ResourceLib format")?,
-
-							GameVersion::H3 => h3_convert_cppt(&cppt_data)
-								.context("Couldn't convert binary data to ResourceLib format")?
-						};
+					let factory = convert_cppt(game_version, &cppt_data).context("Couldn't convert binary data to ResourceLib format")?;
 
 					let blueprint_hash = &cppt_meta
 						.core_info

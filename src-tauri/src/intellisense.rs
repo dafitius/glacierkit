@@ -27,9 +27,7 @@ use tryvial::try_fn;
 use crate::{
 	entity::get_local_reference,
 	resourcelib::{
-		convert_uicb, h2016_convert_cppt, h2016_convert_dswb, h2016_convert_ecpb, h2016_convert_wsgb, h2_convert_cppt,
-		h2_convert_dswb, h2_convert_ecpb, h2_convert_wsgb, h3_convert_cppt, h3_convert_dswb, h3_convert_ecpb,
-		h3_convert_wsgb, EAttributeKind, EExtendedPropertyType
+		convert_uicb, convert_cppt, convert_ecpb, convert_wsgb, convert_dswb, EAttributeKind, EExtendedPropertyType
 	},
 	rpkg::{extract_entity, extract_latest_metadata, extract_latest_resource}
 };
@@ -83,11 +81,7 @@ impl Intellisense {
 
 		let extracted = extract_latest_resource(game_files, cppt)?;
 
-		let cppt_data = match game_version {
-			GameVersion::H1 => h2016_convert_cppt(&extracted.1)?,
-			GameVersion::H2 => h2_convert_cppt(&extracted.1)?,
-			GameVersion::H3 => h3_convert_cppt(&extracted.1)?
-		};
+		let cppt_data = convert_cppt(game_version, &extracted.1)?;
 
 		self.cppt_properties.insert(
 			cppt,
@@ -496,6 +490,7 @@ impl Intellisense {
 										}
 
 										for entry in convert_uicb(
+											game_version,
 											&extract_latest_resource(
 												game_files,
 												extract_latest_metadata(game_files, factory)?
@@ -700,11 +695,7 @@ impl Intellisense {
 										)?
 										.1;
 
-										let ecpb_data = match game_version {
-											GameVersion::H1 => h2016_convert_ecpb(&ecpb_data)?,
-											GameVersion::H2 => h2_convert_ecpb(&ecpb_data)?,
-											GameVersion::H3 => h3_convert_ecpb(&ecpb_data)?
-										};
+										let ecpb_data = convert_ecpb(game_version, &ecpb_data)?;
 
 										for entry in ecpb_data.properties {
 											found.push((
@@ -895,6 +886,7 @@ impl Intellisense {
 						}
 
 						for entry in convert_uicb(
+							game_version,
 							&extract_latest_resource(
 								game_files,
 								extract_latest_metadata(game_files, factory)?
@@ -1092,11 +1084,7 @@ impl Intellisense {
 						)?
 						.1;
 
-						let ecpb_data = match game_version {
-							GameVersion::H1 => h2016_convert_ecpb(&ecpb_data)?,
-							GameVersion::H2 => h2_convert_ecpb(&ecpb_data)?,
-							GameVersion::H3 => h3_convert_ecpb(&ecpb_data)?
-						};
+						let ecpb_data = convert_ecpb(game_version, &ecpb_data)?;
 
 						for entry in ecpb_data.properties {
 							if entry.property_name == property_to_find {
@@ -1311,6 +1299,7 @@ impl Intellisense {
 							output.extend(cppt_data.outputs.iter().map(|x| &x.name).cloned());
 
 							for entry in convert_uicb(
+								game_version,
 								&extract_latest_resource(
 									game_files,
 									extract_latest_metadata(game_files, factory)?
@@ -1388,13 +1377,7 @@ impl Intellisense {
 								.resource
 								.get_id();
 
-							let dswb_data = match game_version {
-								GameVersion::H1 => {
-									h2016_convert_dswb(&extract_latest_resource(game_files, dswb_hash)?.1)?
-								}
-								GameVersion::H2 => h2_convert_dswb(&extract_latest_resource(game_files, dswb_hash)?.1)?,
-								GameVersion::H3 => h3_convert_dswb(&extract_latest_resource(game_files, dswb_hash)?.1)?
-							};
+							let dswb_data = convert_dswb(game_version, &extract_latest_resource(game_files, dswb_hash)?.1)?;
 
 							input.extend(dswb_data.m_aSwitches);
 						}
@@ -1448,13 +1431,7 @@ impl Intellisense {
 								.resource
 								.get_id();
 
-							let wsgb_data = match game_version {
-								GameVersion::H1 => {
-									h2016_convert_wsgb(&extract_latest_resource(game_files, wsgb_hash)?.1)?
-								}
-								GameVersion::H2 => h2_convert_wsgb(&extract_latest_resource(game_files, wsgb_hash)?.1)?,
-								GameVersion::H3 => h3_convert_wsgb(&extract_latest_resource(game_files, wsgb_hash)?.1)?
-							};
+							let wsgb_data = convert_wsgb(game_version, &extract_latest_resource(game_files, wsgb_hash)?.1)?;
 
 							input.extend(wsgb_data.m_aSwitches);
 						}
