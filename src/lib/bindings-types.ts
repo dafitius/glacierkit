@@ -63,7 +63,7 @@ export type Dynamics = { announcements: Announcement[] }
 
 export type EditorConnectionEvent = { type: "entitySelected"; data: [string, string] } | { type: "entityTransformUpdated"; data: [string, string, QNTransform] } | { type: "entityPropertyChanged"; data: [string, string, string, string, JsonValue] }
 
-export type EditorEvent = { type: "text"; data: TextEditorEvent } | { type: "entity"; data: EntityEditorEvent } | { type: "resourceOverview"; data: ResourceOverviewEvent } | { type: "repositoryPatch"; data: RepositoryPatchEditorEvent } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorEvent } | { type: "contentSearchResults"; data: ContentSearchResultsEvent }
+export type EditorEvent = { type: "text"; data: TextEditorEvent } | { type: "entity"; data: EntityEditorEvent } | { type: "resourceOverview"; data: ResourceOverviewEvent } | { type: "repositoryPatch"; data: RepositoryPatchEditorEvent } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorEvent } | { type: "contentSearchResults"; data: ContentSearchResultsEvent } | { type: "geometryEditor"; data: GeometryEditorEvent }
 
 export type EditorRequest = { type: "text"; data: TextEditorRequest } | { type: "entity"; data: EntityEditorRequest } | { type: "resourceOverview"; data: ResourceOverviewRequest } | { type: "repositoryPatch"; data: RepositoryPatchEditorRequest } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorRequest } | { type: "contentSearchResults"; data: ContentSearchResultsRequest } | { type: "geometry"; data: GeometryEditorRequest }
 
@@ -243,21 +243,23 @@ export type GamePlatform = "steam" | "epic" | "gog" | "microsoft"
 
 export type GameVersion = "h1" | "h2" | "h3"
 
-export type GeometryEditorData = { vertices: null[] }
-
-export type GeometryEditorEntry = { name: string; kind: GeometryEditorEntryKind; position: [number, number, number]; meshes: GeometryEditorEntryMesh[]; colliders: GeometryEditorEntryCollider[]; rig: GeometryEditorEntryRig | null }
-
 export type GeometryEditorEntryCollider = Record<string, never>
 
 export type GeometryEditorEntryKind = "mesh" | "weighted" | "linked"
 
-export type GeometryEditorEntryMaterial = Record<string, never>
+export type GeometryEditorEntryMaterial = { name: string; textures: GeometryEditorEntryTexture[] }
 
-export type GeometryEditorEntryMesh = { lodMask: number; material: GeometryEditorData | null }
+export type GeometryEditorEntryMesh = { lodMask: number; wireColor: number; constColor: number; materialIndex: number; indices: number[]; positionBuffer: ([number, number, number])[]; normalBuffer: ([number, number, number])[]; colorBuffer: ([number, number, number, number])[] | null; uvBuffer: ([number, number])[] }
 
 export type GeometryEditorEntryRig = Record<string, never>
 
-export type GeometryEditorRequest = { type: "initialise"; data: { id: string; hash: string; filetype: string; chunk_patch: string; data: ResourceOverviewData } }
+export type GeometryEditorEntryTexture = { name: string; path: string }
+
+export type GeometryEditorEvent = { type: "initialise" } | { type: "initializeWithPrimitive"; data: { prim_hash: string } } | { type: "addObjectFromPrimitive"; data: { id: string; prim_hash: string } }
+
+export type GeometryEditorObject = { name: string; kind: GeometryEditorEntryKind; position: [number, number, number]; meshes: GeometryEditorEntryMesh[]; materials: GeometryEditorEntryMaterial[]; rig: GeometryEditorEntryRig | null }
+
+export type GeometryEditorRequest = { type: "initialise"; data: { id: string } } | { type: "addObject"; data: { id: string; obj_id: string; data: GeometryEditorObject } }
 
 export type GlobalEvent = { type: "setSeenAnnouncements"; data: string[] } | { type: "loadWorkspace"; data: string } | { type: "selectAndOpenFile" } | { type: "selectTab"; data: string | null } | { type: "removeTab"; data: string } | { type: "saveTab"; data: string } | { type: "uploadLogAndReport"; data: string } | { type: "uploadLastPanic" } | { type: "clearLastPanic" }
 

@@ -10,6 +10,7 @@ use hitman_commons::{
 };
 use notify::RecommendedWatcher;
 use notify_debouncer_full::FileIdMap;
+use prim_rs::render_primitive::RenderPrimitive;
 use quickentity_rs::qn_structs::{Entity, Ref, SubEntity, SubType};
 use rpkg_rs::resource::partition_manager::PartitionManager;
 use serde::{Deserialize, Serialize};
@@ -24,6 +25,7 @@ use crate::{
 	intellisense::Intellisense,
 	ores_repo::{RepositoryItem, RepositoryItemInformation, UnlockableInformation, UnlockableItem},
 };
+use crate::event_handling::geometry::GeometryEditorObject;
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -104,6 +106,9 @@ pub enum EditorData {
     ContentSearchResults {
         results: Vec<(String, String, Option<String>)>
     },
+	GeometryEditor {
+		loaded_prims: HashMap<Uuid, RenderPrimitive>
+	}
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
@@ -235,22 +240,6 @@ pub enum ResourceOverviewData {
         name: String,
         wav_paths: Vec<(String, PathBuf)>,
 	},
-	Image {
-		image_path: PathBuf,
-		dds_data: Option<(String, String)>
-	},
-	Audio {
-		wav_path: PathBuf
-	},
-	Mesh {
-		#[debug(skip)]
-		obj: String,
-		bounding_box: [f32; 6]
-	},
-	MultiAudio {
-		name: String,
-		wav_paths: Vec<(String, PathBuf)>
-	},
 	Repository,
 	Unlockables,
 	HMLanguages {
@@ -268,12 +257,6 @@ pub enum ResourceOverviewData {
 	SoundDefinitions {
 		json: String
 	}
-}
-
-#[derive(Type, Serialize, Deserialize, Clone, derive_more::Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct GeometryEditorData {
-    pub vertices: Vec<()>,
 }
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug)]
@@ -326,45 +309,6 @@ pub enum AnnouncementKind {
     Success,
     Warning,
     Error,
-}
-
-
-#[derive(Type, Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub enum GeometryEditorEntryKind {
-    Mesh,
-    Weighted,
-    Linked,
-}
-
-#[derive(Type, Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct GeometryEditorEntryMaterial {}
-
-#[derive(Type, Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct GeometryEditorEntryMesh {
-	lod_mask: u8,
-	material: Option<GeometryEditorData>,
-}
-
-#[derive(Type, Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct GeometryEditorEntryCollider {}
-
-#[derive(Type, Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct GeometryEditorEntryRig {}
-
-#[derive(Type, Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct GeometryEditorEntry {
-	name: String,
-	kind: GeometryEditorEntryKind,
-	position: [f32; 3],
-	meshes: Vec<GeometryEditorEntryMesh>,
-	colliders: Vec<GeometryEditorEntryCollider>,
-	rig: Option<GeometryEditorEntryRig>,
 }
 
 strike! {
@@ -790,7 +734,17 @@ strike! {
 					id: Uuid,
 					hash: RuntimeID
 				}
-			})
+			}),
+			GeometryEditor(pub enum  GeometryEditorEvent {
+				Initialise,
+				InitializeWithPrimitive {
+					prim_hash: RuntimeID
+				}
+				AddObjectFromPrimitive {
+					id: Uuid,
+					prim_hash: RuntimeID
+				}
+			}),
 		}),
 
 		Global(pub enum GlobalEvent {
@@ -1182,12 +1136,13 @@ strike! {
 			}),
 			Geometry(pub enum GeometryEditorRequest {
 				Initialise {
+					id: Uuid
+				},
+				AddObject {
 					id: Uuid,
-					hash: String,
-					filetype: String,
-					chunk_patch: String,
-
-					data: ResourceOverviewData
+					obj_id: Uuid,
+					#[debug(skip)]
+					data: GeometryEditorObject
 				}
 			})
 		}),

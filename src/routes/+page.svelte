@@ -148,15 +148,6 @@
 
 	let hasListened = false
 
-	onMount(async () => {
-		tabs.push({
-			editor: GeometryEditor, name: "geom", unsaved: false,
-			id: "9c19e38d-7784-4262-ab9f-7dd954920e4c"
-		});
-		activeTab = "9c19e38d-7784-4262-ab9f-7dd954920e4c"
-		console.log("THIS LOG MESSAGE!!");
-	})
-
 	beforeUpdate(async () => {
 		if (!hasListened) {
 			hasListened = true
@@ -282,6 +273,8 @@
 							case "contentSearchResults":
 								void tabComponents[request.data.data.data.id].handleRequest?.(request.data.data)
 								break
+							case "geometry":
+								void tabComponents[request.data.data.data.id].handleRequest?.(request.data.data)
 
 							default:
 								request.data satisfies never

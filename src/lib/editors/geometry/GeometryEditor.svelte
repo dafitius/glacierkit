@@ -1,27 +1,16 @@
 <script lang="ts">
-	import type { GeometryEditorEntry, GeometryEditorRequest } from "$lib/bindings-types"
+	import type { GeometryEditorRequest } from "$lib/bindings-types"
 	import { help } from "$lib/helpray"
-	import { Gizmo, Grid, interactivity, OrbitControls } from "@threlte/extras"
+	import { Gizmo } from "@threlte/extras"
 	import { Pane, Splitpanes } from "svelte-splitpanes"
-	import { rand } from "three/src/nodes/math/MathNode"
-	import { random } from "lodash"
-	import { onDestroy, onMount } from "svelte"
 	import Tree from "$lib/editors/geometry/Tree.svelte"
-	import {
-		Checkbox,
-		ContentSwitcher,
-		FluidForm, FormGroup,
-		Slider,
-		Switch,
-		Tab,
-		TabContent,
-		Tabs,
-		Toggle
-	} from "carbon-components-svelte"
+	import { Checkbox, FormGroup, FormLabel, Slider, Tab, TabContent, Tabs } from "carbon-components-svelte"
 	import { Cube, Globe } from "carbon-icons-svelte"
 	import Scene from "$lib/editors/geometry/Scene.svelte"
 	import { Canvas } from "@threlte/core"
 	import { type GeometryEditorEntryContext, GeometryRenderMode } from "$lib/editors/geometry/GeometryTypes"
+	import { onMount } from "svelte"
+	import { convertFileSrc } from "@tauri-apps/api/tauri"
 
 	export let id: string
 
@@ -35,74 +24,33 @@
 	//global settings
 	let showGrid = true
 	let showWireframe = false
-	let lodMask = 0
+	let lodSliderValue = 0;
+	$: lodMask = (1 << (7 - lodSliderValue))
 
-	let objects: GeometryEditorEntryContext[] = [
-		{
-			id: "OBJ1",
-			data: {
-				name: "Object 1",
-				kind: "mesh",
-				position: [1, 1, 1],
-				meshes: [
-					{
-						lodMask: 2,
-						material: null
-					},
-					{
-						lodMask: 4,
-						material: null
-					},
-					{
-						lodMask: 5,
-						material: null
-					}
-				],
-				rig: {},
-				colliders: []
-			},
-			renderMode: GeometryRenderMode.material
-		},
-		{
-			id: "OBJ2",
-			data: {
-				name: "Object 2",
-				kind: "linked",
-				position: [1, 1, 1],
-				meshes: [
-					{
-						lodMask: 2,
-						material: null
-					}
-				],
-				rig: {},
-				colliders: []
-			},
-			renderMode: GeometryRenderMode.material
-		},
-		{
-			id: "OBJ3",
-			data: {
-				name: "Object 3",
-				kind: "weighted",
-				position: [2, 2, 2],
-				meshes: [
-					{
-						lodMask: 2,
-						material: null
-					}
-				],
-				rig: {},
-				colliders: []
-			},
-			renderMode: GeometryRenderMode.material
-		}
-	]
+	let objects: GeometryEditorEntryContext[] = []
+
+	onMount(async () => {
+
+	})
+
 
 	export async function handleRequest(request: GeometryEditorRequest) {
-		console.log(`Geometry editor ${id} handling request`, request)
+		// console.log(`Geometry editor ${id} handling request`, request)
 
 		switch (request.type) {
+			case "initialise":
+				id = request.data.id
+				break
+			case "addObject":
+				objects = [
+					...objects,
+					{
+					id: request.data.obj_id,
+					data: request.data.data,
+					renderMode: GeometryRenderMode.material
+					}];
+				break
+
 
 			default:
 				request satisfies never
@@ -142,6 +90,7 @@
 											  on:change={() => {showWireframe = !showWireframe}} />
 								</FormGroup>
 								<FormGroup legendText="Glacier options">
+									<FormLabel>LoD {lodSliderValue + 1}</FormLabel>
 									<Slider
 										hideLabel
 										labelText="Level of detail"
@@ -150,7 +99,7 @@
 										maxLabel="high"
 										min={0}
 										max={7}
-										bind:value={lodMask}
+										bind:value={lodSliderValue}
 										step={1}
 									/>
 								</FormGroup>
@@ -174,11 +123,17 @@
 					horizontalPlacement="right"
 					size={75}
 				/>
-				<Scene bind:objects={objects} bind:showGrid={showGrid} bind:showWireframe={showWireframe}
+				<Scene bind:objects={objects} bind:lodMask={lodMask} bind:showGrid={showGrid} bind:showWireframe={showWireframe}
 					   bind:selectedObject={selectedObject} />
 			</Canvas>
 		</Pane>
 	</Splitpanes>
+<!--	<img-->
+<!--		alt=""-->
+<!--		class="h-[30vh] bg-[#7f7f7f]"-->
+<!--		style="image-rendering: pixelated"-->
+<!--		src={convertFileSrc(objects[0].data.materials[0].textures[0].path)}-->
+<!--	/>-->
 </div>
 
 <style>

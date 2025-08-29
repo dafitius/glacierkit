@@ -835,6 +835,7 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 
 	match event {
 		ResourceOverviewEvent::Initialise { id } => {
+			
 			let editor_state = app_state.editor_states.get(&id).context("No such editor")?;
 
 			let hash = match editor_state.data {
@@ -843,7 +844,7 @@ pub async fn handle_resource_overview_event(app: &AppHandle, event: ResourceOver
 				_ => {
 					Err(anyhow!("Editor {} is not a resource overview", id))?;
 					panic!();
-				}
+				} 
 			};
 
 			let task = start_task(app, format!("Loading resource overview for {}", hash))?;
