@@ -67,6 +67,7 @@ use tryvial::try_fn;
 use uuid::Uuid;
 use velcro::vec;
 use walkdir::WalkDir;
+use crate::event_handling::geometry::handle_geometry_editor_event;
 
 pub const HASH_LIST_VERSION_ENDPOINT: &str =
 	"https://github.com/glacier-modding/Hitman-Hashes/releases/latest/download/version";
@@ -440,6 +441,10 @@ fn event(app: AppHandle, event: Event) {
 									})
 								)?;
 							}
+						}
+						
+						EditorEvent::GeometryEditor(event) => {
+							handle_geometry_editor_event(&app, event).await?;
 						}
 					},
 
@@ -1183,6 +1188,9 @@ fn event(app: AppHandle, event: Event) {
 											return;
 										}
 									}
+								},
+								EditorData::GeometryEditor { .. } => {
+									return;
 								}
 							};
 
@@ -1248,6 +1256,10 @@ fn event(app: AppHandle, event: Event) {
 											EditorData::UnlockablesPatch { patch_type, .. } => match patch_type {
 												JsonPatchType::MergePatch => "Unlockables merge patch",
 												JsonPatchType::JsonPatch => "Unlockables JSON patch"
+											},
+
+											EditorData::GeometryEditor { .. } => {
+												"Geometry Editor"
 											}
 										},
 										&[match &editor.data {
@@ -1293,6 +1305,11 @@ fn event(app: AppHandle, event: Event) {
 											EditorData::UnlockablesPatch { patch_type, .. } => match patch_type {
 												JsonPatchType::MergePatch => "unlockables.json",
 												JsonPatchType::JsonPatch => "JSON.patch.json"
+											},
+
+											EditorData::GeometryEditor { .. } => {
+												Err(anyhow!("Editor is currently only a viewer page"))?;
+												panic!();
 											}
 										}]
 									)

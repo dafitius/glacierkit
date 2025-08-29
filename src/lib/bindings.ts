@@ -31,7 +31,7 @@ export type CopiedEntityData = {
  */
 rootEntity: string; data: Partial<{ [key in string]: SubEntity }> }
 export type EditorConnectionEvent = { type: "entitySelected"; data: [string, string] } | { type: "entityTransformUpdated"; data: [string, string, QNTransform] } | { type: "entityPropertyChanged"; data: [string, string, string, string, JsonValue] }
-export type EditorEvent = { type: "text"; data: TextEditorEvent } | { type: "entity"; data: EntityEditorEvent } | { type: "resourceOverview"; data: ResourceOverviewEvent } | { type: "repositoryPatch"; data: RepositoryPatchEditorEvent } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorEvent } | { type: "contentSearchResults"; data: ContentSearchResultsEvent }
+export type EditorEvent = { type: "text"; data: TextEditorEvent } | { type: "entity"; data: EntityEditorEvent } | { type: "resourceOverview"; data: ResourceOverviewEvent } | { type: "repositoryPatch"; data: RepositoryPatchEditorEvent } | { type: "unlockablesPatch"; data: UnlockablesPatchEditorEvent } | { type: "contentSearchResults"; data: ContentSearchResultsEvent } | { type: "geometryEditor"; data: GeometryEditorEvent }
 export type EntityEditorEvent = { type: "general"; data: EntityGeneralEvent } | { type: "tree"; data: EntityTreeEvent } | { type: "monaco"; data: EntityMonacoEvent } | { type: "metaPane"; data: EntityMetaPaneEvent } | { type: "metadata"; data: EntityMetadataEvent } | { type: "overrides"; data: EntityOverridesEvent }
 export type EntityGeneralEvent = { type: "setShowReverseParentRefs"; data: { editor_id: string; show_reverse_parent_refs: boolean } } | { type: "setShowChangesFromOriginal"; data: { editor_id: string; show_changes_from_original: boolean } }
 export type EntityMetaPaneEvent = { type: "jumpToReference"; data: { editor_id: string; reference: string } } | { type: "setNotes"; data: { editor_id: string; entity_id: string; notes: string } }
@@ -72,6 +72,7 @@ externalScene: string | null;
  */
 exposedEntity?: string | null }
 export type GameBrowserEvent = { type: "select"; data: string } | { type: "search"; data: [string, SearchFilter] } | { type: "openInEditor"; data: string }
+export type GeometryEditorEvent = { type: "initialise" } | { type: "initializeWithPrimitive"; data: { prim_hash: string } } | { type: "addObjectFromPrimitive"; data: { id: string; prim_hash: string } }
 export type GlobalEvent = { type: "setSeenAnnouncements"; data: string[] } | { type: "loadWorkspace"; data: string } | { type: "selectAndOpenFile" } | { type: "selectTab"; data: string | null } | { type: "removeTab"; data: string } | { type: "saveTab"; data: string } | { type: "uploadLogAndReport"; data: string } | { type: "uploadLastPanic" } | { type: "clearLastPanic" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 /**

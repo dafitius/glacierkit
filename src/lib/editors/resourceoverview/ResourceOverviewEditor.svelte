@@ -677,6 +677,24 @@
 										>
 									{:else if data.type === "Mesh"}
 										<Button
+											icon={Edit}
+											on:click={async () => {
+												trackEvent("Opening PRIM resource in editor")
+												await event({
+													type: "editor",
+													data: {
+														type: "geometryEditor",
+														data: {
+															type: "initializeWithPrimitive",
+															data: {
+																prim_hash: hash
+															}
+														}
+													}
+												})
+											}}>Open in editor</Button
+										>
+										<Button
 											icon={DocumentExport}
 											on:click={async () => {
 												trackEvent("Extract mesh file as original")

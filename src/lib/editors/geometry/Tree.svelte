@@ -14,6 +14,7 @@
 
 	$: if (lodMask !== prevLodMask) {
 		prevLodMask = lodMask;
+		refreshTree();
 	}
 
 	let treeDiv: HTMLDivElement;
@@ -29,10 +30,6 @@
 		}
 	}
 
-	function isLod(objLodMask: number) {
-		return (objLodMask & lodMask) == lodMask
-	}
-
 	// Helper to convert EditorEntry[] to jsTree JSON format
 	function entriesToJsTreeData(entries: GeometryEditorEntryContext[]) {
 		return entries.map((entry, idx) => {
@@ -42,21 +39,34 @@
 					text: "Submeshes",
 					children: entry.data.meshes.map((mesh, mIdx) => ({
 						id: `obj_${idx}_mesh_${mIdx}`,
-						text: `submesh-${mIdx}`,
-						icon: isLod(mesh.lodMask) ? "fa fa-circle" : "fa fa-circle-xmark",
+						text: `submesh-${mIdx} [${mesh.lodMask}]`,
+						icon: (lodMask & mesh.lodMask) === lodMask ? "fa fa-circle" : "fa fa-circle-xmark",
 					})),
 					icon: "fa fa-cubes",
 				}
 			];
 
-			if (entry.data.colliders.length > 0) {
-				children.push({
-					id: `obj_${idx}_colliders`,
-					text: "Colliders",
-					children: [],
-					icon: "fa fa-person-falling-burst",
-				})
-			}
+			// if (entry.data.colliders.length > 0) {
+			// 	children.push({
+			// 		id: `obj_${idx}_colliders`,
+			// 		text: "Colliders",
+			// 		children: [],
+			// 		icon: "fa fa-person-falling-burst",
+			// 	})
+			// }
+
+			if (entry.data.materials.length > 0) {
+					children.push({
+						id: `obj_${idx}_materials`,
+						text: "Materials",
+						children: entry.data.materials.map((material, mIdx) => ({
+							id: `obj_${idx}_material_${mIdx}`,
+							text: material.name,
+							icon: "fa fa-circle-notch",
+						})),
+						icon: "fa fa-circle-notch",
+					})
+				}
 
 			if (entry.data.rig !== null) {
 				children.push({

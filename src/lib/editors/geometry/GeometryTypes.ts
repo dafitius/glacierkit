@@ -1,4 +1,4 @@
-import type { GeometryEditorEntry } from "$lib/bindings-types"
+import type { GeometryEditorObject } from "$lib/bindings-types"
 
 export enum GeometryRenderMode {
 	material,
@@ -8,6 +8,6 @@ export enum GeometryRenderMode {
 
 export type GeometryEditorEntryContext = {
 	id: string
-	data: GeometryEditorEntry
+	data: GeometryEditorObject
 	renderMode: GeometryRenderMode
 }
