@@ -10,7 +10,7 @@
 	import { Canvas } from "@threlte/core"
 	import { type GeometryEditorEntryContext, GeometryRenderMode } from "$lib/editors/geometry/GeometryTypes"
 	import { onMount } from "svelte"
-	import { convertFileSrc } from "@tauri-apps/api/tauri"
+	import { convertFileSrc } from "@tauri-apps/api/core"
 
 	export let id: string
 

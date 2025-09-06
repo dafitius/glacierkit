@@ -17,7 +17,7 @@ use hitman_formats::{
     material::{MaterialEntity, MaterialInstance},
     ores::{parse_hashes_ores, parse_json_ores},
     sdef::SoundDefinitions,
-    wwev::{WwiseEvent, WwiseEventData},
+    wwev::{WwiseEvent},
 };
 use hitman_formats::material::MaterialPropertyValue;
 use image::{ImageFormat, ImageReader};
@@ -29,10 +29,7 @@ use rpkg_rs::{resource::partition_manager::PartitionManager, GlacierResource};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_string, to_vec, Value};
 use specta::{Type, TypeMap};
-use tauri::{
-    api::{dialog::blocking::FileDialogBuilder, process::Command},
-    AppHandle, Manager, State,
-};
+use tauri::{AppHandle, Manager};
 use tauri_plugin_aptabase::EventTracker;
 use tonytools::hmlanguages;
 use tryvial::try_fn;
@@ -144,7 +141,7 @@ fn create_geometry_editor_entry(
         let prim_id = Uuid::new_v4();
         let (resource_metadata, prim_data) = rpkg::extract_latest_resource(game_files, prim_hash)?;
 
-        if let EditorData::GeometryEditor { ref mut loaded_prims } = &mut editor_state.data {
+        if let EditorData::GeometryEditor { loaded_prims } = &mut editor_state.data {
             let model = RenderPrimitive::process_data(game_version.into(), prim_data)
                 .context("Couldn't process prim data")?;
             loaded_prims.insert(prim_id, model);
@@ -199,7 +196,7 @@ fn create_geometry_editor_entry(
                 })
                 .collect();
 
-            let data_dir = app.path_resolver().app_data_dir().expect("Couldn't get data dir");
+            let data_dir = app.path().app_data_dir().expect("Couldn't get data dir");
             let materials = get_geometry_editor_materials(game_files, game_version, &data_dir, &resource_metadata.core_info.references);
 
             return Ok(GeometryEditorObject {

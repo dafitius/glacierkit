@@ -4,7 +4,7 @@
 	import { useTexture } from "@threlte/extras"
 	import { createEventDispatcher } from "svelte"
 	import type { GeometryEditorEntryMaterial, GeometryEditorEntryMesh } from "$lib/bindings-types"
-	import { convertFileSrc } from "@tauri-apps/api/tauri"
+	import { convertFileSrc } from "@tauri-apps/api/core"
 
 	export let mesh: GeometryEditorEntryMesh
 	export let materials: GeometryEditorEntryMaterial[]
