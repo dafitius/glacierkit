@@ -14,7 +14,7 @@ use tryvial::{try_block, try_fn};
 
 use crate::{
 	bin1::{deserialize_modern_blueprint, deserialize_modern_factory},
-	model::{ResourceChangelogEntry, ResourceChangelogOperation}
+	model::editors::resource_overview::{ResourceChangelogEntry, ResourceChangelogOperation}
 };
 
 /// Extract the latest copy of a resource.

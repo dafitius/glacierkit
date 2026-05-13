@@ -10,13 +10,9 @@ use tryvial::try_fn;
 use uuid::Uuid;
 
 use crate::{
-	finish_task,
-	model::{
-		AppState, EditorData, EditorRequest, EditorRequestData, RepositoryPatchEditorEvent,
-		RepositoryPatchEditorRequest, Request, TabRequest, TabRequestData
-	},
-	ores_repo::{RepositoryItem, RepositoryItemInformation},
-	send_request, start_task
+		model::editors::EditorData,
+
+	finish_task, model::app::{AppState, GlobalRequest, Request}, model::editors::{EditorRequest, repository_patch::{RepositoryPatchEditorEvent, RepositoryPatchEditorRequest}}, ores_repo::{RepositoryItem, RepositoryItemInformation}, send_request, start_task
 };
 
 #[try_fn]

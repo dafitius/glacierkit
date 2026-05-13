@@ -31,14 +31,20 @@ use uuid::Uuid;
 use velcro::vec;
 
 use crate::{
+	model::tools::settings::AppSettings,
+	model::tools::file_browser::FileBrowserRequest,
+	model::tools::game_browser::GameBrowserRequest,
+	model::tools::content_search::ContentSearchRequest,
+	model::tools::ToolRequest,
+	model::editors::{EditorData, EditorState, EditorType},
+	model::common::{JsonPatchType, TextFileType},
 	HASH_LIST_ENDPOINT, HASH_LIST_VERSION_ENDPOINT, Notification, NotificationKind, TONYTOOLS_HASH_LIST_ENDPOINT,
 	TONYTOOLS_HASH_LIST_VERSION_ENDPOINT,
 	event_handling::resource_overview::initialise_resource_overview,
 	finish_task, get_loaded_game_version,
 	intellisense::Intellisense,
-	model::{
-		AppSettings, AppState, ContentSearchRequest, EditorData, EditorState, EditorType, FileBrowserRequest,
-		GameBrowserRequest, JsonPatchType, Request, TabRequest, TabRequestData, TextFileType, ToolRequest
+	model::app::{
+		AppState, GlobalRequest, Request
 	},
 	ores_repo::{RepositoryItem, UnlockableItem},
 	rpkg::{extract_entity, extract_latest_resource},

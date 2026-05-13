@@ -23,7 +23,10 @@ use crate::{
 	bin1::{deserialize_generic_writer, deserialize_modern_blueprint, deserialize_modern_factory},
 	finish_task, get_loaded_game_version,
 	languages::get_language_map,
-	model::{AppSettings, AppState, EditorData, EditorState, EditorType, Request, TabRequest, TabRequestData},
+	model::tools::settings::AppSettings,
+	model::editors::{EditorData, EditorState, EditorType},
+	model::app::{AppState, GlobalRequest, Request},
+	resourcelib::convert_generic,
 	rpkg::extract_latest_resource,
 	send_request, start_task
 };

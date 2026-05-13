@@ -12,10 +12,11 @@ use uuid::Uuid;
 
 use crate::{
 	finish_task,
-	model::{
-		AppState, EditorData, EditorRequest, EditorRequestData, Request, TabRequest, TabRequestData,
-		UnlockablesPatchEditorEvent, UnlockablesPatchEditorRequest
-	},
+	model::{editors::EditorRequest, app::{
+		AppState, GlobalRequest, Request
+	}},
+	model::editors::EditorData,
+	model::editors::unlockables_patch::{UnlockablesPatchEditorEvent, UnlockablesPatchEditorRequest},
 	ores_repo::{UnlockableInformation, UnlockableItem},
 	send_request, start_task
 };

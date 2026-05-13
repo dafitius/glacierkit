@@ -5,10 +5,10 @@ use tryvial::try_fn;
 use uuid::Uuid;
 
 use crate::{
-	model::{
-		AppState, EditorData, EditorRequest, EditorRequestData, EntityEditorRequest, EntityGeneralEvent,
-		EntityTreeRequest, Request
-	},
+	model::editors::EditorRequest,
+	model::app::{AppState, Request}, 
+	model::editors::entity::{EntityEditorRequest, general::EntityGeneralEvent, tree::EntityTreeRequest}, 
+	model::editors::EditorData,
 	send_request
 };
 

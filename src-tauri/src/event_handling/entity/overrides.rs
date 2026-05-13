@@ -10,13 +10,13 @@ use tryvial::try_fn;
 use uuid::Uuid;
 
 use crate::{
-	entity::{get_ref_decoration, visit_variant},
-	finish_task, get_loaded_game_version,
-	model::{
-		AppSettings, AppState, EditorData, EditorRequest, EditorRequestData, EntityEditorRequest, EntityOverridesEvent,
-		EntityOverridesRequest, Request, TabRequest, TabRequestData
-	},
-	send_request, start_task
+		model::editors::EditorData,
+
+	entity::{get_ref_decoration, visit_variant}, finish_task, get_loaded_game_version, model::app::{
+		AppState, GlobalRequest, Request
+	}, 
+	model::editors::EditorRequest,
+	model::{editors::entity::{EntityEditorRequest, overrides::{EntityOverridesEvent, EntityOverridesRequest}}, tools::settings::AppSettings}, send_request, start_task
 };
 
 #[try_fn]

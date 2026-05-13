@@ -10,23 +10,18 @@ use serde_json::from_str;
 use tauri::{AppHandle, Manager};
 use tryvial::try_fn;
 use uuid::Uuid;
-
 use crate::{
-	Notification, NotificationKind,
-	entity::{
+	Notification, NotificationKind, entity::{
 		check_local_references_exist, get_decorations, get_diff_info, is_valid_entity_blueprint,
 		is_valid_entity_factory, reverse_parent_refs_set
-	},
-	finish_task,
-	general::open_in_editor,
-	get_loaded_game_version,
-	model::{
-		AppSettings, AppState, EditorData, EditorRequest, EditorRequestData, EditorState, EditorType, EditorValidity,
-		EntityEditorRequest, EntityMonacoEvent, EntityMonacoRequest, EntityTreeRequest, Request, TabRequest,
-		TabRequestData
-	},
-	rpkg::extract_latest_overview_info,
-	send_notification, send_request, start_task
+	}, finish_task, general::open_in_editor, get_loaded_game_version, 
+	model::editors::EditorRequest,
+	model::app::{
+		AppState, GlobalRequest, Request
+	}, 
+	model::{editors::entity::{EntityEditorRequest, monaco::{EditorValidity, EntityMonacoEvent, EntityMonacoRequest}, tree::EntityTreeRequest}, tools::settings::AppSettings}, 
+	model::editors::{EditorData, EditorState, EditorType},
+	rpkg::extract_latest_overview_info, send_notification, send_request, start_task
 };
 
 pub static SAFE_TO_SYNC: [&str; 44] = [

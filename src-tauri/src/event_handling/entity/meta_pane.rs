@@ -6,10 +6,13 @@ use tryvial::try_fn;
 use uuid::Uuid;
 
 use crate::{
-	model::{
-		AppState, EditorData, EditorRequest, EditorRequestData, EntityEditorRequest, EntityMetaPaneEvent,
-		EntityTreeRequest, Request, TabRequest, TabRequestData
-	},
+	model::editors::EditorRequest,
+	model::app::{
+		AppState,
+		GlobalRequest, Request
+	}, 
+	model::editors::entity::{EntityEditorRequest, metapane::EntityMetaPaneEvent, tree::EntityTreeRequest}, 
+	model::editors::EditorData,
 	send_request
 };
 

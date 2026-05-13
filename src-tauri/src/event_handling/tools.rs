@@ -29,20 +29,21 @@ use velcro::vec;
 
 use crate::bin1::{deserialize_modern_blueprint, deserialize_modern_factory};
 use crate::event_handling::entity::monaco::ENUMS;
-use crate::model::Hash;
+use crate::model::common::Hash;
 use crate::ores_repo::UnlockableItem;
 use crate::rpkg::extract_latest_resource;
 use crate::{Notification, NotificationKind, send_notification};
 use crate::{
+	model::editors::{EditorData, EditorState, EditorType},
+	model::tools::{
+		settings::{AppSettings, SettingsEvent, SettingsRequest},
+		file_browser::FileBrowserEvent,
+		game_browser::{GameBrowserEvent, GameBrowserRequest, GameBrowserEntry, SearchFilter},
+		content_search::ContentSearchEvent
+	},
 	convert_json_patch_to_merge_patch,
-	model::{
-		AppSettings, AppState, ContentSearchEvent, EditorData, EditorState, EditorType, FileBrowserEvent,
-		GameBrowserEntry, GameBrowserEvent, GameBrowserRequest, GlobalRequest, Request, SearchFilter, SettingsEvent,
-		SettingsRequest, TabRequest, TabRequestData, ToolEvent, ToolRequest
-	}
 };
 use crate::{event_handling::content_search::start_content_search, send_request};
-use crate::{finish_task, start_task};
 use crate::{general::open_in_editor, rpkg::extract_entity};
 use crate::{
 	general::{load_game_files, open_file},

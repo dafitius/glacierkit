@@ -38,8 +38,12 @@ use tonytools::hmlanguages;
 use tryvial::{try_block, try_fn};
 use uuid::Uuid;
 use ww2ogg::{CodebookLibrary, WwiseRiffVorbis};
-
+ 
 use crate::{
+	model::tools::settings::AppSettings,
+	model::common::Hash,
+	model::editors::resource_overview::{ResourceOverviewEvent, ResourceOverviewRequest, ResourceOverviewData},
+	model::editors::{EditorData, EditorState, EditorType},
 	Notification, NotificationKind,
 	bin1::deserialize_generic,
 	biome::format_json,
@@ -47,10 +51,10 @@ use crate::{
 	general::open_in_editor,
 	get_loaded_game_version,
 	languages::get_language_map,
-	model::{
-		AppSettings, AppState, EditorData, EditorRequest, EditorRequestData, EditorState, EditorType, Hash, Request,
-		ResourceOverviewData, ResourceOverviewEvent, ResourceOverviewRequest, TabRequest, TabRequestData
-	},
+	model::{editors::EditorRequest, app::{
+		AppState, GlobalRequest, Request
+	}},
+	resourcelib::convert_generic,
 	rpkg::{extract_entity, extract_latest_overview_info, extract_latest_resource, extract_resource_changelog},
 	send_notification, send_request, start_task
 };

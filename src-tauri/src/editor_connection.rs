@@ -30,12 +30,12 @@ use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async, tungsten
 use tryvial::{try_block, try_fn};
 
 use crate::{
-	Notification, NotificationKind, handle_event,
-	model::{
-		AppState, EditorConnectionEvent, EditorData, EditorRequest, EditorRequestData, EntityEditorRequest,
-		EntityMonacoRequest, EntityTreeRequest, Event, GlobalRequest, Hash, Request
-	},
-	send_notification, send_request
+	Notification, NotificationKind, handle_event, 
+	model::editors::EditorRequest,
+	model::app::{
+		AppState, Event, GlobalRequest, Request
+	}, 
+	model::{common::Hash, editor_connection::EditorConnectionEvent, editors::{EditorData, entity::{EntityEditorRequest, monaco::EntityMonacoRequest, tree::EntityTreeRequest}}}, send_notification, send_request
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

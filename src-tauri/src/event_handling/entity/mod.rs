@@ -4,8 +4,7 @@ use tauri::AppHandle;
 use tryvial::try_fn;
 use uuid::Uuid;
 
-use crate::model::EntityEditorEvent;
-
+use crate::model::editors::entity::EntityEditorEvent;
 pub mod general;
 pub mod meta_pane;
 pub mod metadata;

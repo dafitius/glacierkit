@@ -48,11 +48,25 @@ use indexmap::IndexMap;
 use json_patch::Patch;
 use log::{LevelFilter, info, trace};
 use model::{
-	AppSettings, AppState, ContentSearchResultsEvent, ContentSearchResultsRequest, EditorConnectionEvent, EditorData,
-	EditorEventData, EditorRequest, EditorRequestData, EditorState, EditorType, EntityEditorRequest,
-	EntityMetadataRequest, EntityMonacoRequest, EntityTreeRequest, Event, FileBrowserRequest, GlobalEvent,
-	GlobalRequest, JsonPatchType, Project, ProjectSettings, Request, SettingsRequest, TabRequest, TabRequestData,
-	TextEditorEvent, TextEditorRequest, TextFileType, ToolRequest
+	tools::{
+		settings::{AppSettings, SettingsRequest}, 
+		file_browser::FileBrowserRequest
+	}, 
+	editors::{
+		EditorData, EditorState, EditorType,
+		text_editor::{TextEditorEvent, TextEditorRequest},
+		entity::{EntityEditorRequest, tree::EntityTreeRequest, metadata::EntityMetadataRequest, monaco::EntityMonacoRequest},
+		content_search_results::{ContentSearchResultsEvent, ContentSearchResultsRequest}
+	}, 
+	project::{Project, ProjectSettings},
+	common::{JsonPatchType, TextFileType},
+	editor_connection::EditorConnectionEvent
+};
+use model::editors::{EditorEvent, EditorRequest};
+use model::tools::ToolRequest;
+use model::app::{
+	AppState, Event, GlobalEvent, GlobalRequest,
+	Request
 };
 use notify::RecursiveMode;
 use notify_debouncer_full::FileIdMap;

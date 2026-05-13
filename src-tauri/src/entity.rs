@@ -26,7 +26,7 @@ use velcro::vec;
 
 use crate::{
 	languages::get_language_map,
-	model::EditorValidity,
+	model::editors::entity::monaco::EditorValidity,
 	ores_repo::RepositoryItem,
 	rpkg::{extract_entity, extract_latest_metadata, extract_latest_resource}
 };

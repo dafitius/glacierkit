@@ -29,20 +29,27 @@ use uuid::Uuid;
 
 use super::monaco::SAFE_TO_SYNC;
 use crate::{
-	Notification, NotificationKind,
-	entity::{
+	Notification, NotificationKind, entity::{
 		CopiedEntityData, ReverseReferenceData, alter_ref_according_to_changelist, calculate_reverse_references,
 		check_local_references_exist, get_decorations, get_diff_info, get_recursive_children, is_valid_entity_factory,
 		random_entity_id, reverse_parent_refs_set, visit_variant_mut
-	},
-	finish_task, get_loaded_game_version,
+	}, finish_task, get_loaded_game_version, 
+	model::editors::EditorRequest,
+	model::app::{
+		AppState, GlobalRequest, Request
+	}, 
 	model::{
-		AppSettings, AppState, EditorData, EditorRequest, EditorRequestData, EditorValidity, EntityEditorRequest,
-		EntityGeneralRequest, EntityMetaPaneRequest, EntityMonacoRequest, EntityTreeEvent, EntityTreeRequest, Request,
-		TabRequest, TabRequestData
-	},
-	rpkg::{extract_entity, extract_latest_metadata, extract_latest_resource},
-	send_notification, send_request, start_task
+		editors::{
+			EditorData,
+			entity::{
+				EntityEditorRequest, 
+				general::EntityGeneralRequest, 
+				metapane::EntityMetaPaneRequest, 
+				monaco::{EditorValidity, EntityMonacoRequest}, 
+				tree::{EntityTreeEvent, EntityTreeRequest}
+			}, 
+		},
+		tools::settings::AppSettings}, rpkg::{extract_entity, extract_latest_metadata, extract_latest_resource}, send_notification, send_request, start_task
 };
 
 #[try_fn]
