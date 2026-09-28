@@ -31,6 +31,8 @@
 	import ContentSearchResultsEditor from "$lib/editors/contentsearchresults/ContentSearchResultsEditor.svelte"
 	import { open, confirm } from "@tauri-apps/plugin-dialog"
 	import { help } from "$lib/helpray"
+	import GameLauncher from "$lib/tools/GameLauncher.svelte"
+	import { GameConsole } from "carbon-icons-svelte"
 
 	const hints = [
 		"You can switch between tabs with Ctrl-PageUp and Ctrl-PageDown (or Ctrl-Tab and Ctrl-Shift-Tab).",
@@ -84,6 +86,11 @@
 			name: "Text tools",
 			icon: TextSelection,
 			component: TextTransformer
+		},
+		GameLauncher: {
+			name: "Game launcher",
+			icon: GameConsole,
+			component: GameLauncher
 		},
 		Settings: {
 			name: "Settings",
